@@ -27,7 +27,7 @@ import {AsyncPipe} from '@angular/common';
           <span class="avatar" aria-hidden="true">
             @if (isAuthed()) {
               @if (avatarUrl()) {
-                <img class="avatar__img" [src]="avatarUrl()!" alt="" />
+                <img class="avatar__img" [src]="avatarUrl()!" (error)="onAvatarError()" alt="" />
               } @else {
                 <span class="avatar__fallback">{{ initial() }}</span>
               }
@@ -181,11 +181,16 @@ import {AsyncPipe} from '@angular/common';
 })
 export class AppHeader {
   private auth = inject(AuthService);
+  avatarBroken = false;
 
   private state = toSignal(this.auth.state$, { initialValue: { status: 'guest' } as any });
 
   isAuthed = computed(() => this.state()?.status === 'auth');
   userName = computed(() => (this.state()?.status === 'auth' ? this.state().user.name : 'User'));
-  avatarUrl = computed(() => (this.state()?.status === 'auth' ? (this.state().user.avatarUrl ?? null) : null));
+  avatarUrl = computed(() => (this.state()?.status === 'auth' && !this.avatarBroken ? (this.state().user.avatarUrl ?? null) : null));
   initial = computed(() => ((this.userName()?.trim()?.[0] ?? 'U').toUpperCase()));
+
+  onAvatarError(): void {
+    this.avatarBroken = true;
+  }
 }

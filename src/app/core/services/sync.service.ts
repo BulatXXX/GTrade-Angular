@@ -3,7 +3,6 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, catchError, map, Observable, of, switchMap, tap, throwError} from 'rxjs';
 
-import {API_BASE_URL} from '../api/api.config';
 import {AuthService} from '../auth/auth.service';
 import {TrackedItem} from '../models/item';
 import {TrackedItemsService} from './items-tracked';
@@ -112,14 +111,14 @@ export class SyncService {
 
   private getServer(): Observable<TrackedItem[]> {
     return this.http
-      .get<GetTrackedResp>(`${API_BASE_URL}/tracked?mode=pve`)
+      .get<GetTrackedResp>(`/tracked?mode=pve`)
       .pipe(map(res => (res.items ?? []).map(normalizeTracked)));
   }
 
   private putServer(items: TrackedItem[]): Observable<TrackedItem[]> {
     const body: PutTrackedReq = { items: items.map(normalizeTracked) };
     return this.http
-      .put<PutTrackedResp>(`${API_BASE_URL}/tracked?mode=pve`, body)
+      .put<PutTrackedResp>(`/tracked?mode=pve`, body)
       .pipe(map(res => (res.items ?? []).map(normalizeTracked)));
   }
 }

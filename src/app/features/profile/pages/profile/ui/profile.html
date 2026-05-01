@@ -26,7 +26,7 @@
       @for (it of rows(); track it.id) {
         <div class="row-wrap">
           <a class="row" [routerLink]="['/items', it.id]">
-            <img class="icon" [src]="it.iconLink || placeholder" width="40" height="40" alt="" />
+            <img class="icon" [src]="it.iconLink || placeholder" (error)="onImageError($event)" width="40" height="40" alt="" />
             <div class="main">
               @if (it.status === 'ready') { <div class="name">{{ it.name }}</div><div class="id muted">Price: {{ it.avg24hPrice ?? '—' }}</div> }
               @else { <div class="skel skel-name"></div><div class="skel skel-price"></div> }

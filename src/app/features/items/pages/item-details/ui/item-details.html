@@ -10,7 +10,7 @@
         <div class="game-backdrop" aria-hidden="true"></div>
         <button class="track-icon-btn" type="button" (click)="toggleTracked()" [class.is-tracked]="s.tracked" [title]="s.tracked ? 'Remove from watchlist' : 'Add to watchlist'">{{ s.tracked ? '★' : '☆' }}</button>
         <div class="top">
-          <div class="icon-wrap"><img class="icon" [src]="s.item.image512pxLink ?? s.item.iconLink ?? placeholder" [alt]="s.item.name" /></div>
+          <div class="icon-wrap"><img class="icon" [src]="s.item.image512pxLink ?? s.item.iconLink ?? placeholder" (error)="onImageError($event)" [alt]="s.item.name" /></div>
           <div class="titles">
             <div class="eyebrow">{{ t.label }} • {{ s.item.source }}</div>
             <h1 class="name">{{ s.item.name }}</h1>

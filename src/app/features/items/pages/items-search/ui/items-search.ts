@@ -30,5 +30,11 @@ export class ItemsSearch {
   setGame(game: GameFilter) { this.vm.setGame(game); }
   clearHistory() { this.vm.clearHistory(); }
   get isQueryEmpty(): boolean { return this.query.value.trim().length === 0; }
-  placeholder = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+  placeholder = 'assets/item-placeholder.svg';
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (!img || img.src.endsWith(this.placeholder)) return;
+    img.src = this.placeholder;
+  }
 }
