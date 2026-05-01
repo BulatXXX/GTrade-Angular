@@ -1,0 +1,51 @@
+<div class="page">
+  <header class="header">
+    <h1 class="title">Items search</h1>
+    <p class="subtitle muted">Search the local GTrade catalog. Use game filter first for cleaner results.</p>
+  </header>
+
+  @if (viewModel$ | async; as vm) {
+    <div class="filters" role="group" aria-label="Game filter">
+      @for (g of games; track g.code) {
+        <button type="button" class="chip" [class.active]="vm.game === g.code" (click)="setGame(g.code)">{{ g.label }}</button>
+      }
+    </div>
+
+    <div class="search-box">
+      <div class="search">
+        <input class="input" type="text" [formControl]="query" placeholder="Search: ruble, plex, prime, injector…" autocomplete="off" />
+
+        @if (history$ | async; as history) {
+          @if (isQueryEmpty && history.length > 0) {
+            <div class="history-popover"><div class="history">
+              <div class="history-head"><div class="history-title">Recently viewed</div><button class="history-clear" type="button" (click)="clearHistory()">Clear</button></div>
+              <div class="history-list">
+                @for (h of history; track h.id) {
+                  <a class="history-row" [routerLink]="['/items', h.id]"><img class="icon" [src]="h.iconLink || placeholder" width="32" height="32" alt="" /><div class="name">{{ h.name }}</div><div class="chev">›</div></a>
+                }
+              </div>
+            </div></div>
+          }
+        }
+      </div>
+    </div>
+
+    @if (vm.status === 'loading') {
+      <div class="list skeleton-list" aria-hidden="true">@for (_ of [1,2,3,4,5,6]; track _) { <div class="row row-skel"><div class="icon skel skel-icon"></div><div class="name skel skel-text"></div><div class="chev skel skel-chev"></div></div> }</div>
+    } @else if (vm.status === 'error') {
+      <div class="error"><div class="error-title">Request failed</div><div class="error-text">{{ vm.errorMessage }}</div></div>
+    } @else if (vm.items.length === 0) {
+      <div class="hint muted">Nothing found</div>
+    } @else {
+      <div class="list">
+        @for (it of vm.items; track it.id) {
+          <a class="row" [routerLink]="['/items', it.id]">
+            <img class="icon" [src]="it.iconLink || placeholder" width="40" height="40" alt="" />
+            <div class="name"><span>{{ it.name }}</span><small>{{ it.game }} • {{ it.source }}</small></div>
+            <div class="chev" aria-hidden="true">›</div>
+          </a>
+        }
+      </div>
+    }
+  }
+</div>

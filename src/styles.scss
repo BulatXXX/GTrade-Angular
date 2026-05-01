@@ -1,0 +1,32 @@
+html, body { height: 100%; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root{
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Orbitron", "Inter", system-ui, sans-serif;
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.72);
+}
+
+body{
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background:
+    linear-gradient(rgba(0,0,0,0.800), rgba(0,0,0,0.75)),
+    url("/assets/bg2.jpg") center / cover no-repeat fixed;
+}
+
+
+h1, h2, h3, .title, .brand, .app-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.6px;
+}
+
+/* если у тебя есть .muted */
+.muted { color: var(--muted); }

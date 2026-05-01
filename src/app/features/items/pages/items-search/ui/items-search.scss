@@ -1,0 +1,322 @@
+/* ========== Layout ========== */
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.header { margin-bottom: 12px; }
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.subtitle { margin: 6px 0 0; }
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}.chip{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}.chip:hover,.chip.active{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.24)}
+.name small{display:block;margin-top:3px;font-size:11px;font-weight:500;opacity:.62;text-transform:uppercase;letter-spacing:.4px}
+
+/* ========== Search + popover ========== */
+.search-box {
+  position: relative;
+  border-radius: 16px;
+}
+
+/* якорь для popover — чтобы НЕ "скукоживалось" */
+.search {
+  position: relative;
+  margin: 14px 0 16px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+
+  box-sizing: border-box;
+  outline: none;
+}
+
+.search-box:focus-within .input {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* popover: виден только пока фокус внутри search-box */
+.history-popover {
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  top: calc(100% + 10px);
+  z-index: 20;
+
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: 140ms ease;
+}
+
+.search-box:focus-within .history-popover {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* ========== Results list ========== */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  text-decoration: none;
+  color: inherit;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+
+  transition: 120ms ease;
+  box-sizing: border-box;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ========== Shared row elements ========== */
+.icon {
+  border-radius: 10px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  object-fit: contain;
+}
+
+.row .icon { width: 40px; height: 40px; }
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.chev {
+  opacity: 0.6;
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ========== History panel (dark glass) ========== */
+.history {
+  padding: 12px;
+  border-radius: 16px;
+
+  background: rgba(10, 12, 16, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.history-title {
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.history-clear {
+  padding: 6px 10px;
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+  cursor: pointer;
+
+  transition: 120ms ease;
+}
+
+.history-clear:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+/* приятный скроллбар */
+.history-list::-webkit-scrollbar { width: 8px; }
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+}
+.history-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.20);
+  border-radius: 8px;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  text-decoration: none;
+  color: inherit;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+
+  transition: 120ms ease;
+}
+
+/* hover: серый */
+.history-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.history-row .icon { width: 32px; height: 32px; }
+
+.history-row .name {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-row .chev {
+  opacity: 0.55;
+  font-size: 22px;
+}
+
+/* ========== Shimmer (for loading list) ========== */
+.skeleton-list { margin-top: 10px; }
+
+.row-skel {
+  pointer-events: none;
+}
+
+.row-skel:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* base skeleton */
+.skel {
+  position: relative;
+  display: block;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  overflow: hidden;
+}
+
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.00),
+      rgba(255,255,255,0.12),
+      rgba(255,255,255,0.00)
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+/* sizes inside row */
+.skel-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25); /* как у реальной иконки */
+  border-color: rgba(255,255,255,0.08);
+}
+
+.skel-text {
+  height: 16px;
+  width: clamp(180px, 55%, 300px);
+  border-radius: 300px;
+}
+
+.skel-chev {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  opacity: 0.5;
+}
+
+/* ========== States ========== */
+.hint { margin-top: 8px; }
+
+.error {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 80, 80, 0.42);
+  background: rgba(255, 80, 80, 0.08);
+}
+
+.error-title { font-weight: 700; margin-bottom: 4px; }
+
+.error-text {
+  opacity: 0.85;
+  word-break: break-word;
+}
+
+.muted { opacity: 0.75; }
+
+/* ========== Responsive (3 breakpoints) ========== */
+@media (max-width: 599px) {
+  .title { font-size: 22px; }
+  .row, .history-row { padding: 10px; }
+  .page { padding: 14px; }
+}
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  .page { padding: 20px; }
+}
+
+@media (min-width: 1024px) {
+  .page { padding: 24px; }
+}

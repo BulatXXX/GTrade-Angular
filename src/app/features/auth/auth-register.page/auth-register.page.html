@@ -1,0 +1,57 @@
+<div class="auth">
+  <div class="auth__card">
+    <div class="auth__badge">NEW PMC</div>
+
+    <h1 class="auth__title">Register</h1>
+    <p class="auth__subtitle muted">Create an account to sync your list.</p>
+
+    <form class="auth__form" (ngSubmit)="submit()">
+      <label class="field">
+        <span class="field__label">Name</span>
+        <input class="input" type="text" autocomplete="nickname" [formControl]="name" placeholder="Singularity" />
+        @if (name.touched && name.invalid) {
+          <div class="field__error">
+            @if (name.errors?.['required']) { Name is required }
+            @else { Min 2 characters }
+          </div>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input class="input" type="email" autocomplete="email" [formControl]="email" placeholder="you@example.com" />
+        @if (email.touched && email.invalid) {
+          <div class="field__error">
+            @if (email.errors?.['required']) { Email is required }
+            @else { Invalid email }
+          </div>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Password</span>
+        <input class="input" type="password" autocomplete="new-password" [formControl]="password" placeholder="••••••••" />
+        @if (password.touched && password.invalid) {
+          <div class="field__error">
+            @if (password.errors?.['required']) { Password is required }
+            @else { Min 6 characters }
+          </div>
+        }
+      </label>
+
+      @if (error()) {
+        <div class="auth__error">{{ error() }}</div>
+      }
+
+      <button class="btn btn--primary" type="submit" [disabled]="loading()">
+        @if (loading()) { Creating… } @else { Create account }
+      </button>
+
+      <div class="auth__links muted">
+        <a routerLink="/auth/login">Already have an account?</a>
+        <span class="dot">•</span>
+        <a routerLink="/items">Back to search</a>
+      </div>
+    </form>
+  </div>
+</div>

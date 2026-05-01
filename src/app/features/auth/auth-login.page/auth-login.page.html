@@ -1,0 +1,48 @@
+<div class="auth">
+  <div class="auth__card">
+    <div class="auth__badge">SECURE CONTAINER</div>
+
+    <h1 class="auth__title">Sign in</h1>
+    <p class="auth__subtitle muted">Log in to sync your tracked items.</p>
+
+    <form class="auth__form" (ngSubmit)="submit()">
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input class="input" type="email" autocomplete="email" [formControl]="email" placeholder="you@example.com" />
+        @if (email.touched && email.invalid) {
+          <div class="field__error">
+            @if (email.errors?.['required']) { Email is required }
+            @else { Invalid email }
+          </div>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Password</span>
+        <input class="input" type="password" autocomplete="current-password" [formControl]="password" placeholder="••••••••" />
+        @if (password.touched && password.invalid) {
+          <div class="field__error">
+            @if (password.errors?.['required']) { Password is required }
+            @else { Min 6 characters }
+          </div>
+        }
+      </label>
+
+      @if (error()) {
+        <div class="auth__error">{{ error() }}</div>
+      }
+
+      <button class="btn btn--primary" type="submit" [disabled]="loading()">
+        @if (loading()) { Signing in… } @else { Sign in }
+      </button>
+
+      <div class="auth__links muted">
+        <a routerLink="/auth/register">Create account</a>
+        <span class="dot">•</span>
+        <a routerLink="/auth/password-reset">Forgot password?</a>
+        <span class="dot">•</span>
+        <a routerLink="/items">Back to search</a>
+      </div>
+    </form>
+  </div>
+</div>

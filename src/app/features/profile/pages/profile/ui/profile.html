@@ -1,0 +1,41 @@
+<div class="page">
+  <header class="header">
+    <div class="header__row">
+      <div class="header__left">
+        <h1 class="title">{{ isAuthed() ? userName() + '’s watchlist' : 'Profile' }}</h1>
+        <p class="subtitle muted">Manage tracked catalog items and switch pricing mode.</p>
+      </div>
+      <div class="header__actions">
+        @if (isAuthed()) { <button class="icon-btn" type="button" (click)="logout()" title="Logout">⎋</button> }
+      </div>
+    </div>
+  </header>
+
+  <div class="mode-row" role="group" aria-label="Mode switch">
+    <div class="segmented"><button type="button" class="seg-btn" [class.active]="mode() === 'pvp'" (click)="setMode('pvp')">PvP</button><button type="button" class="seg-btn" [class.active]="mode() === 'pve'" (click)="setMode('pve')">PvE</button></div>
+    @if (!isEmpty()) { <button class="btn btn--ghost" type="button" (click)="clear()">Clear watchlist</button> }
+  </div>
+
+  @if (!isAuthed()) { <div class="sync-note muted">Sign in to use protected backend routes. Local watchlist works offline.</div> }
+
+  @if (isEmpty()) {
+    <div class="empty muted">Your watchlist is empty</div>
+    <a class="btn" routerLink="/items">Go to search</a>
+  } @else {
+    <div class="list">
+      @for (it of rows(); track it.id) {
+        <div class="row-wrap">
+          <a class="row" [routerLink]="['/items', it.id]">
+            <img class="icon" [src]="it.iconLink || placeholder" width="40" height="40" alt="" />
+            <div class="main">
+              @if (it.status === 'ready') { <div class="name">{{ it.name }}</div><div class="id muted">Price: {{ it.avg24hPrice ?? '—' }}</div> }
+              @else { <div class="skel skel-name"></div><div class="skel skel-price"></div> }
+            </div>
+            <div class="chev">›</div>
+          </a>
+          <button class="remove" type="button" (click)="remove(it.id)" title="Remove">×</button>
+        </div>
+      }
+    </div>
+  }
+</div>
