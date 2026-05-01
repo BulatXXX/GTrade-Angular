@@ -331,3 +331,71 @@
     border-radius: 14px;
   }
 }
+
+/* ===== Game-aware card analytics ===== */
+.game-card {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--game-accent) 28%, transparent), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.025));
+  box-shadow: 0 20px 70px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.game-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: .32;
+  background-size: cover;
+  background-position: center;
+  filter: saturate(.95) contrast(1.05);
+}
+.game-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(8,10,12,.82), rgba(8,10,12,.55)), radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--game-accent) 18%, transparent), transparent 36%);
+}
+.theme-tarkov::before { background-image: url('/assets/bg2.jpg'); }
+.theme-warframe::before { background-image: radial-gradient(circle at 60% 20%, rgba(122,215,255,.35), transparent 24%), linear-gradient(135deg, #06121f, #17182c 48%, #05070c); }
+.theme-eve::before { background-image: radial-gradient(circle at 68% 34%, rgba(255,179,71,.32), transparent 18%), radial-gradient(circle at 30% 72%, rgba(71,135,255,.18), transparent 24%), linear-gradient(135deg, #080b12, #251708 56%, #050608); }
+.theme-generic::before { background-image: linear-gradient(135deg, #0d1018, #181229); }
+.game-backdrop {
+  position: absolute;
+  inset: auto -18% -34% 34%;
+  height: 280px;
+  transform: rotate(-9deg);
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--game-accent) 12%, transparent) 0 1px, transparent 1px 18px);
+  opacity: .2;
+  pointer-events: none;
+}
+.analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(240px, .85fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+.chart-card {
+  border: 1px solid color-mix(in srgb, var(--game-accent) 22%, rgba(255,255,255,.12));
+  border-radius: 18px;
+  background: rgba(0,0,0,.18);
+  padding: 14px;
+  min-height: 210px;
+  backdrop-filter: blur(12px);
+}
+.chart-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .7px; opacity: .82; }
+.chart-head b { color: var(--game-accent); font-weight: 700; }
+.chart { width: 100%; height: 162px; margin-top: 10px; overflow: visible; }
+.chart-area { fill: color-mix(in srgb, var(--game-accent) 22%, transparent); opacity: .7; }
+.chart-line { fill: none; stroke: var(--game-accent); stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 7px color-mix(in srgb, var(--game-accent) 60%, transparent)); }
+.bar { fill: color-mix(in srgb, var(--game-accent) 68%, white 8%); opacity: .78; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--game-accent) 36%, transparent)); }
+.game-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.game-stats .stat { border-color: color-mix(in srgb, var(--game-accent) 18%, rgba(255,255,255,.1)); background: rgba(0,0,0,.16); }
+.stat em { display: block; margin-top: 4px; font-size: 11px; font-style: normal; opacity: .56; text-transform: uppercase; letter-spacing: .45px; }
+.track-icon-btn.is-tracked { color: var(--game-accent); border-color: color-mix(in srgb, var(--game-accent) 42%, rgba(255,255,255,.18)); }
+@media (max-width: 780px) {
+  .analytics-grid { grid-template-columns: 1fr; }
+  .game-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) { .game-stats { grid-template-columns: 1fr; } }

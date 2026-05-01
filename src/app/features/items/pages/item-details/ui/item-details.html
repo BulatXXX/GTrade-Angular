@@ -5,16 +5,18 @@
     @if (s.status === 'loading' || s.status === 'idle') {
       <div class="card" aria-busy="true"><div class="top"><div class="icon-skel skel"></div><div class="titles"><div class="skel sk-title"></div><div class="skel sk-id"></div><div class="skel sk-price"></div></div></div></div>
     } @else if (s.status === 'ready' && s.item) {
-      <section class="card">
+      @let t = theme(s.item);
+      <section class="card game-card" [class]="t.className" [style.--game-accent]="t.accent">
+        <div class="game-backdrop" aria-hidden="true"></div>
         <button class="track-icon-btn" type="button" (click)="toggleTracked()" [class.is-tracked]="s.tracked" [title]="s.tracked ? 'Remove from watchlist' : 'Add to watchlist'">{{ s.tracked ? '★' : '☆' }}</button>
         <div class="top">
           <div class="icon-wrap"><img class="icon" [src]="s.item.image512pxLink ?? s.item.iconLink ?? placeholder" (error)="onImageError($event)" [alt]="s.item.name" /></div>
           <div class="titles">
-            <div class="eyebrow">{{ s.item.game }} • {{ s.item.source }}</div>
+            <div class="eyebrow">{{ t.label }} • {{ s.item.source }}</div>
             <h1 class="name">{{ s.item.name }}</h1>
             <div class="id">Catalog ID: {{ s.item.id }}</div>
             <div class="id">External ID: {{ s.item.externalId }}</div>
-            <div class="price">Top price: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span>{{ s.item.price?.currency }}</span></div>
+            <div class="price">Primary price: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span>{{ s.item.price?.currency }}</span></div>
             @if (s.item.game === 'tarkov') {
               <div class="seg" role="tablist" aria-label="Tarkov mode"><button type="button" class="seg__btn" [class.active]="s.mode === 'regular'" (click)="setMode('regular')">PvP</button><button type="button" class="seg__btn" [class.active]="s.mode === 'pve'" (click)="setMode('pve')">PvE</button></div>
             }
@@ -22,13 +24,28 @@
         </div>
         @if (s.item.description) { <p class="desc">{{ s.item.description }}</p> }
 
-        <div class="stats">
-          <div class="stat"><span>Current</span><b>{{ s.item.price?.pricing?.current ?? '—' }}</b></div>
-          <div class="stat"><span>Top sell</span><b>{{ s.item.price?.pricing?.top_sell ?? '—' }}</b></div>
-          <div class="stat"><span>Top buy</span><b>{{ s.item.price?.pricing?.top_buy ?? '—' }}</b></div>
-          <div class="stat"><span>Median</span><b>{{ s.item.price?.analytics?.median ?? '—' }}</b></div>
-          <div class="stat"><span>Low / High</span><b>{{ s.item.price?.analytics?.low ?? '—' }} / {{ s.item.price?.analytics?.high ?? '—' }}</b></div>
-          <div class="stat"><span>Samples</span><b>{{ s.item.price?.analytics?.sample_size ?? '—' }}</b></div>
+        <div class="analytics-grid">
+          <article class="chart-card chart-card--wide">
+            <div class="chart-head"><span>Price trend</span><b>{{ s.item.price?.market_kind || 'market' }}</b></div>
+            @let trend = chartPoints(s.item, 'trend');
+            <svg class="chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Generated price trend chart">
+              <path class="chart-area" [attr.d]="areaPath(trend)"></path>
+              <polyline class="chart-line" [attr.points]="sparkline(trend)"></polyline>
+            </svg>
+          </article>
+
+          <article class="chart-card">
+            <div class="chart-head"><span>Liquidity</span><b>{{ s.item.price?.analytics?.sample_size ?? 'synthetic' }}</b></div>
+            <svg class="chart bars" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Generated liquidity chart">
+              @for (bar of bars(s.item); track bar.x) { <rect class="bar" [attr.x]="bar.x" [attr.y]="bar.y" width="2.8" [attr.height]="bar.h" rx="1"></rect> }
+            </svg>
+          </article>
+        </div>
+
+        <div class="stats game-stats">
+          @for (m of metrics(s.item); track m.label) {
+            <div class="stat"><span>{{ m.label }}</span><b>{{ m.value }}</b><em>{{ m.hint }}</em></div>
+          }
         </div>
       </section>
     } @else if (s.status === 'error') {
