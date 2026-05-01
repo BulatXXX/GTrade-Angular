@@ -30,5 +30,11 @@ export class Profile {
   remove(id: string) { this.tracked.remove(id); }
   clear() { this.tracked.clear(); }
   logout() { this.auth.logout(); }
-  placeholder = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+  placeholder = 'assets/item-placeholder.svg';
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement | null;
+    if (!img || img.src.endsWith(this.placeholder)) return;
+    img.src = this.placeholder;
+  }
 }

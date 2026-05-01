@@ -17,7 +17,7 @@ export class ItemDetailsPage {
 
   vm = inject(ItemDetailsViewModel);
 
-  placeholder = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+  placeholder = 'assets/item-placeholder.svg';
   state$ = this.vm.state$;
 
   constructor() {
@@ -35,5 +35,11 @@ export class ItemDetailsPage {
 
   setMode(mode: 'pve' | 'regular') {
     this.vm.setMode(mode);
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement | null;
+    if (!img || img.src.endsWith(this.placeholder)) return;
+    img.src = this.placeholder;
   }
 }

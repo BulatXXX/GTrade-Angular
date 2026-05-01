@@ -24,7 +24,7 @@ Angular frontend for [GTrade-Go](https://github.com/BulatXXX/GTrade-Go).
 Default API base URL is configured in `src/app/core/api/api.config.ts`:
 
 ```ts
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = '';
 ```
 
 The frontend uses gateway paths:
@@ -40,11 +40,15 @@ The frontend uses gateway paths:
 ## Development
 
 ```bash
+nvm use
 npm install
 npm start
 ```
 
 Open <http://localhost:4200>.
+
+Use Node.js 22 LTS. Node 23 is not supported for this project and can fail during Angular build/start.
+In development, Angular proxies `/api` and `/tracked` to `http://localhost:8080`, so backend CORS is not required for local frontend runs.
 
 ## Build
 

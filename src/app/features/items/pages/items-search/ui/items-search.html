@@ -21,7 +21,7 @@
               <div class="history-head"><div class="history-title">Recently viewed</div><button class="history-clear" type="button" (click)="clearHistory()">Clear</button></div>
               <div class="history-list">
                 @for (h of history; track h.id) {
-                  <a class="history-row" [routerLink]="['/items', h.id]"><img class="icon" [src]="h.iconLink || placeholder" width="32" height="32" alt="" /><div class="name">{{ h.name }}</div><div class="chev">›</div></a>
+                  <a class="history-row" [routerLink]="['/items', h.id]"><img class="icon" [src]="h.iconLink || placeholder" (error)="onImageError($event)" width="32" height="32" alt="" /><div class="name">{{ h.name }}</div><div class="chev">›</div></a>
                 }
               </div>
             </div></div>
@@ -40,7 +40,7 @@
       <div class="list">
         @for (it of vm.items; track it.id) {
           <a class="row" [routerLink]="['/items', it.id]">
-            <img class="icon" [src]="it.iconLink || placeholder" width="40" height="40" alt="" />
+            <img class="icon" [src]="it.iconLink || placeholder" (error)="onImageError($event)" width="40" height="40" alt="" />
             <div class="name"><span>{{ it.name }}</span><small>{{ it.game }} • {{ it.source }}</small></div>
             <div class="chev" aria-hidden="true">›</div>
           </a>
