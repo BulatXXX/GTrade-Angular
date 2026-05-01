@@ -399,3 +399,88 @@
   .game-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 520px) { .game-stats { grid-template-columns: 1fr; } }
+
+/* ===== Full page game backgrounds ===== */
+.game-page {
+  max-width: none;
+  min-height: calc(100vh - 120px);
+  padding: 18px clamp(14px, 4vw, 42px) 42px;
+  position: relative;
+  overflow: hidden;
+}
+.game-page > .back-btn,
+.game-page > .game-card {
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  opacity: 1;
+}
+.page-bg::before,
+.page-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.page-bg::before {
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.04);
+  filter: saturate(1.1) contrast(1.05);
+}
+.page-bg::after {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.76)),
+    radial-gradient(circle at 15% 12%, color-mix(in srgb, var(--game-accent) 24%, transparent), transparent 32%),
+    radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--game-accent) 18%, transparent), transparent 30%),
+    linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.1), rgba(0,0,0,.45));
+}
+.game-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -9;
+  pointer-events: none;
+  opacity: .23;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--game-accent) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--game-accent) 16%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 50% 22%, black, transparent 72%);
+}
+.game-page.theme-tarkov .page-bg::before {
+  background-image:
+    linear-gradient(135deg, rgba(24,31,20,.3), rgba(0,0,0,.15)),
+    url('/assets/bg2.jpg');
+}
+.game-page.theme-warframe .page-bg::before {
+  background-image:
+    radial-gradient(circle at 72% 18%, rgba(122,215,255,.5), transparent 22%),
+    radial-gradient(circle at 24% 70%, rgba(151,91,255,.22), transparent 30%),
+    linear-gradient(125deg, #020814 0%, #071c31 42%, #101329 100%);
+}
+.game-page.theme-eve .page-bg::before {
+  background-image:
+    radial-gradient(circle at 64% 26%, rgba(255,179,71,.55), transparent 15%),
+    radial-gradient(circle at 38% 58%, rgba(70,119,255,.26), transparent 28%),
+    radial-gradient(circle at 80% 82%, rgba(255,95,65,.18), transparent 22%),
+    linear-gradient(125deg, #03050a 0%, #111827 35%, #241404 100%);
+}
+.game-page.theme-generic .page-bg::before {
+  background-image: linear-gradient(135deg, #070913, #181229 60%, #050608);
+}
+.game-page.theme-warframe .game-backdrop {
+  background:
+    radial-gradient(circle at 30% 40%, rgba(122,215,255,.22), transparent 24%),
+    repeating-linear-gradient(120deg, rgba(122,215,255,.16) 0 1px, transparent 1px 20px);
+}
+.game-page.theme-eve .game-backdrop {
+  background:
+    radial-gradient(circle at 45% 45%, rgba(255,179,71,.24), transparent 18%),
+    repeating-linear-gradient(60deg, rgba(255,179,71,.14) 0 1px, transparent 1px 22px);
+}
