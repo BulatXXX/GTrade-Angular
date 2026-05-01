@@ -459,20 +459,13 @@
     url('/assets/bg2.jpg');
 }
 .game-page.theme-warframe .page-bg::before {
-  background-image:
-    radial-gradient(circle at 72% 18%, rgba(122,215,255,.5), transparent 22%),
-    radial-gradient(circle at 24% 70%, rgba(151,91,255,.22), transparent 30%),
-    linear-gradient(125deg, #020814 0%, #071c31 42%, #101329 100%);
+  background-image: url('/assets/game-backgrounds/warframe.svg');
 }
 .game-page.theme-eve .page-bg::before {
-  background-image:
-    radial-gradient(circle at 64% 26%, rgba(255,179,71,.55), transparent 15%),
-    radial-gradient(circle at 38% 58%, rgba(70,119,255,.26), transparent 28%),
-    radial-gradient(circle at 80% 82%, rgba(255,95,65,.18), transparent 22%),
-    linear-gradient(125deg, #03050a 0%, #111827 35%, #241404 100%);
+  background-image: url('/assets/game-backgrounds/eve.svg');
 }
 .game-page.theme-generic .page-bg::before {
-  background-image: linear-gradient(135deg, #070913, #181229 60%, #050608);
+  background-image: url('/assets/game-backgrounds/generic.svg');
 }
 .game-page.theme-warframe .game-backdrop {
   background:
