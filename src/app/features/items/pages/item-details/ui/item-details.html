@@ -1,12 +1,11 @@
-<div class="page">
-  <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>Back</span></a>
+@if (state$ | async; as s) {
+  @if (s.status === 'ready' && s.item) {
+    @let t = theme(s.item);
+    <div class="page game-page" [class]="t.className" [style.--game-accent]="t.accent">
+      <div class="page-bg" aria-hidden="true"></div>
+      <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>Back</span></a>
 
-  @if (state$ | async; as s) {
-    @if (s.status === 'loading' || s.status === 'idle') {
-      <div class="card" aria-busy="true"><div class="top"><div class="icon-skel skel"></div><div class="titles"><div class="skel sk-title"></div><div class="skel sk-id"></div><div class="skel sk-price"></div></div></div></div>
-    } @else if (s.status === 'ready' && s.item) {
-      @let t = theme(s.item);
-      <section class="card game-card" [class]="t.className" [style.--game-accent]="t.accent">
+      <section class="card game-card">
         <div class="game-backdrop" aria-hidden="true"></div>
         <button class="track-icon-btn" type="button" (click)="toggleTracked()" [class.is-tracked]="s.tracked" [title]="s.tracked ? 'Remove from watchlist' : 'Add to watchlist'">{{ s.tracked ? '★' : '☆' }}</button>
         <div class="top">
@@ -48,8 +47,15 @@
           }
         </div>
       </section>
-    } @else if (s.status === 'error') {
-      <div class="error"><h2>Item not found</h2><p class="muted">{{ s.errorMessage }}</p></div>
-    }
+    </div>
+  } @else {
+    <div class="page">
+      <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>Back</span></a>
+      @if (s.status === 'loading' || s.status === 'idle') {
+        <div class="card" aria-busy="true"><div class="top"><div class="icon-skel skel"></div><div class="titles"><div class="skel sk-title"></div><div class="skel sk-id"></div><div class="skel sk-price"></div></div></div></div>
+      } @else if (s.status === 'error') {
+        <div class="error"><h2>Item not found</h2><p class="muted">{{ s.errorMessage }}</p></div>
+      }
+    </div>
   }
-</div>
+}
