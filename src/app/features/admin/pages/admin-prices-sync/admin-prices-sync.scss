@@ -1,0 +1,206 @@
+.prices-page {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.info-card {
+  display: flex;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.info-icon {
+  font-size: 28px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.info-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.82;
+}
+
+.info-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.6;
+  font-family: var(--font-body), system-ui;
+}
+
+.action-area {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.10); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+.btn--start {
+  font-size: 15px;
+  padding: 12px 28px;
+  background: rgba(255, 122, 138, 0.15);
+  border-color: rgba(255, 122, 138, 0.35);
+  color: var(--admin-accent, #ff7a8a);
+}
+
+.btn--start:hover { background: rgba(255, 122, 138, 0.24); }
+
+.btn--secondary { background: rgba(255, 255, 255, 0.04); }
+.btn--ghost { background: transparent; border-color: rgba(255, 255, 255, 0.10); }
+.btn--sm { font-size: 12px; padding: 6px 14px; }
+.btn-icon { font-size: 12px; }
+.mt-12 { margin-top: 12px; }
+
+.job-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.done-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(126, 255, 192, 0.28);
+  background: rgba(126, 255, 192, 0.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #7effc0;
+  font-size: 13px;
+}
+
+.done-icon { font-size: 18px; }
+
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 80, 80, 0.28);
+  background: rgba(255, 80, 80, 0.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #ff8c8c;
+  font-size: 13px;
+}
+
+.history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-empty {
+  font-size: 13px;
+  opacity: 0.45;
+  padding: 8px 0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.history-type {
+  font-size: 13px;
+  font-family: var(--font-body), system-ui;
+  opacity: 0.75;
+}
+
+.history-dates {
+  font-size: 11px;
+  opacity: 0.5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.job-status {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.status--pending { color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+.status--running { color: #7ad7ff; background: rgba(122,215,255,0.12); border-color: rgba(122,215,255,0.28); }
+.status--completed { color: #7effc0; background: rgba(126,255,192,0.12); border-color: rgba(126,255,192,0.28); }
+.status--failed { color: #ff8c8c; background: rgba(255,140,140,0.12); border-color: rgba(255,140,140,0.28); }
+.status--cancelled { color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+
+.job-pct {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.5;
+}
+
+.skel {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  animation: shimmer 1.4s infinite;
+  margin-bottom: 6px;
+}
+
+.skel--row { height: 44px; }
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}

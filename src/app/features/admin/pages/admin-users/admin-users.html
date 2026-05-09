@@ -1,0 +1,150 @@
+@if (state$ | async; as s) {
+  <div class="users-page">
+    <div class="page-header">
+      <h1 class="page-title">Users</h1>
+      <button class="btn btn--accent" (click)="sendAllAlerts()" [disabled]="s.alertStatus === 'running'">
+        Send price alerts to ALL
+      </button>
+    </div>
+
+    <!-- Alert status -->
+    @if (s.alertStatus === 'running') {
+      <div class="alert-card">
+        <p class="alert-card__text">Sending price alerts to all users…</p>
+        <app-progress-bar [indeterminate]="true" [label]="'Checking all users'"></app-progress-bar>
+      </div>
+    }
+
+    @if (s.alertStatus === 'done' && s.alertResult) {
+      <div class="result-card">
+        <h3 class="result-card__title">Price Alerts Sent</h3>
+        <div class="result-grid">
+          <div class="result-stat">
+            <span class="result-stat__label">Users Checked</span>
+            <span class="result-stat__value">{{ formatNum(s.alertResult.users_checked) }}</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat__label">Emails Sent</span>
+            <span class="result-stat__value result-stat__value--accent">{{ formatNum(s.alertResult.emails_sent) }}</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat__label">Users with Diffs</span>
+            <span class="result-stat__value">{{ formatNum(s.alertResult.users_with_diff) }}</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat__label">Changes Found</span>
+            <span class="result-stat__value">{{ formatNum(s.alertResult.changes_found) }}</span>
+          </div>
+        </div>
+        <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">Dismiss</button>
+      </div>
+    }
+
+    @if (s.alertStatus === 'error') {
+      <div class="error-card">
+        <span>Failed: {{ s.alertError }}</span>
+        <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">Dismiss</button>
+      </div>
+    }
+
+    <!-- Filter -->
+    <input [formControl]="filterCtrl" class="filter-input" placeholder="Filter by email…" />
+
+    @if (s.status === 'error') {
+      <div class="error-block">{{ s.error }}</div>
+    }
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Verified</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (s.status === 'loading') {
+            @for (i of [1,2,3,4,5]; track i) {
+              <tr>
+                @for (j of [1,2,3,4,5,6]; track j) {
+                  <td><div class="skel skel--text"></div></td>
+                }
+              </tr>
+            }
+          } @else {
+            @for (user of s.filtered; track user.id) {
+              <tr class="user-row">
+                <td class="cell-id">{{ user.id }}</td>
+                <td class="cell-email">{{ user.email }}</td>
+                <td class="cell-verified">
+                  <span class="verified-pill" [class.verified-pill--yes]="user.email_verified">
+                    {{ user.email_verified ? 'verified' : 'unverified' }}
+                  </span>
+                </td>
+                <td class="cell-role">
+                  <select class="role-select" [value]="user.role" (change)="changeRole(user, $any($event.target).value)">
+                    <option value="user">user</option>
+                    <option value="admin">admin</option>
+                  </select>
+                </td>
+                <td class="cell-date">{{ formatDate(user.created_at) }}</td>
+                <td class="cell-actions">
+                  <button class="btn btn--sm btn--ghost" (click)="openMessageDrawer(user)">Message</button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (s.filtered.length === 0 && s.status === 'ready') {
+      <div class="empty-state">No users found.</div>
+    }
+
+    <!-- Message drawer -->
+    @if (s.messageDrawerOpen) {
+      <div class="drawer-backdrop" (click)="closeMessageDrawer()">
+        <div class="drawer" (click)="$event.stopPropagation()">
+          <div class="drawer-header">
+            <h3 class="drawer-title">Send message to {{ s.messageTargetUser?.email }}</h3>
+            <button class="drawer-close" (click)="closeMessageDrawer()">✕</button>
+          </div>
+
+          @if (s.messageSent) {
+            <div class="success-block">Message sent!</div>
+          } @else {
+            <form [formGroup]="messageForm" class="message-form" (ngSubmit)="sendMessage()">
+              <div class="form-row">
+                <label class="field-label">Subject</label>
+                <input formControlName="subject" class="field-input" placeholder="Email subject" />
+              </div>
+              <div class="form-row">
+                <label class="field-label">HTML body</label>
+                <textarea formControlName="html_body" class="field-input field-textarea" rows="5" placeholder="<p>HTML body…</p>"></textarea>
+              </div>
+              <div class="form-row">
+                <label class="field-label">Text body</label>
+                <textarea formControlName="text_body" class="field-input field-textarea" rows="3" placeholder="Plain text fallback…"></textarea>
+              </div>
+              @if (s.messageError) {
+                <div class="error-block">{{ s.messageError }}</div>
+              }
+              <div class="form-actions">
+                <button type="button" class="btn btn--ghost" (click)="closeMessageDrawer()">Cancel</button>
+                <button type="submit" class="btn btn--accent" [disabled]="s.messageSending">
+                  @if (s.messageSending) { Sending… } @else { Send }
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

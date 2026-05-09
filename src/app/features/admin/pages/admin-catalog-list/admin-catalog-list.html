@@ -1,0 +1,175 @@
+@if (state$ | async; as s) {
+  <div class="catalog-page">
+    <div class="page-header">
+      <h1 class="page-title">Catalog</h1>
+
+      <div class="action-group">
+        @if (s.importStatus === 'idle') {
+          <button class="btn btn--accent" (click)="showImportForm()">Import Catalog</button>
+        }
+        @if (s.syncStatus === 'idle') {
+          <button class="btn btn--secondary" (click)="startSync()">Sync Price History</button>
+        }
+      </div>
+    </div>
+
+    <!-- Import inline flow -->
+    @if (s.importStatus === 'form') {
+      <div class="inline-card">
+        <h3 class="inline-card__title">Import Catalog</h3>
+        <form [formGroup]="importForm" class="import-form" (ngSubmit)="submitImport()">
+          <div class="form-row">
+            <label class="field-label">Game *</label>
+            <select formControlName="game" class="field-input">
+              <option value="warframe">Warframe</option>
+              <option value="eve">EVE Online</option>
+              <option value="tarkov">Tarkov</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="field-label">Source (optional)</label>
+            <input formControlName="source" class="field-input" placeholder="e.g. warframe.market" />
+          </div>
+          <div class="form-row">
+            <label class="field-label">Language (optional)</label>
+            <input formControlName="language" class="field-input" placeholder="en" />
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn--secondary" (click)="cancelImport()">Cancel</button>
+            <button type="submit" class="btn btn--accent">Start Import</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (s.importStatus === 'running' && s.importJobId) {
+      <div class="inline-card">
+        <h3 class="inline-card__title">Import in Progress</h3>
+        <app-job-progress-card [jobId]="s.importJobId"></app-job-progress-card>
+      </div>
+    }
+
+    @if (s.importStatus === 'done') {
+      <div class="inline-card inline-card--done">
+        <span>Import job completed.</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetImport()">Reset</button>
+      </div>
+    }
+
+    @if (s.importStatus === 'error') {
+      <div class="inline-card inline-card--error">
+        <span>Import failed: {{ s.importError }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetImport()">Reset</button>
+      </div>
+    }
+
+    <!-- Sync inline flow -->
+    @if (s.syncStatus === 'running' && s.syncJobId) {
+      <div class="inline-card">
+        <h3 class="inline-card__title">Price Sync in Progress</h3>
+        <app-job-progress-card [jobId]="s.syncJobId"></app-job-progress-card>
+        <button class="btn btn--secondary btn--sm mt-8" (click)="resetSync()">Dismiss</button>
+      </div>
+    }
+
+    @if (s.syncStatus === 'done') {
+      <div class="inline-card inline-card--done">
+        <span>Price sync job completed.</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetSync()">Reset</button>
+      </div>
+    }
+
+    @if (s.syncStatus === 'error') {
+      <div class="inline-card inline-card--error">
+        <span>Sync failed: {{ s.syncError }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetSync()">Reset</button>
+      </div>
+    }
+
+    <!-- Filter bar -->
+    <form [formGroup]="filterForm" class="filter-bar">
+      <input formControlName="query" class="filter-input filter-input--search" placeholder="Search items…" />
+      <select formControlName="game" class="filter-select">
+        <option value="">All games</option>
+        <option value="warframe">Warframe</option>
+        <option value="eve">EVE</option>
+        <option value="tarkov">Tarkov</option>
+      </select>
+      <select formControlName="language" class="filter-select">
+        <option value="en">EN</option>
+        <option value="ru">RU</option>
+      </select>
+      <label class="filter-toggle">
+        <input type="checkbox" formControlName="active_only" />
+        <span>Active only</span>
+      </label>
+    </form>
+
+    <!-- Error -->
+    @if (s.status === 'error') {
+      <div class="error-block">{{ s.error }}</div>
+    }
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Game</th>
+            <th>Source</th>
+            <th>Slug</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of s.items; track item.id) {
+            <tr class="item-row" [class.item-row--inactive]="item.is_active === false">
+              <td class="cell-img">
+                @if (item.image_url) {
+                  <img [src]="item.image_url" [alt]="item.name" class="item-thumb" loading="lazy" />
+                } @else {
+                  <div class="item-thumb-empty"></div>
+                }
+              </td>
+              <td class="cell-name">{{ item.name }}</td>
+              <td class="cell-game">
+                <span class="game-pill game-pill--{{ item.game }}">{{ item.game }}</span>
+              </td>
+              <td class="cell-source">{{ item.source }}</td>
+              <td class="cell-slug" [title]="item.slug">{{ truncate(item.slug) }}</td>
+              <td class="cell-date">{{ formatDate(item.updated_at) }}</td>
+              <td class="cell-actions">
+                <a [routerLink]="'/admin/catalog/' + item.id" class="btn btn--sm btn--ghost">Edit</a>
+                <button class="btn btn--sm btn--danger" (click)="deleteItem(item)">Delete</button>
+              </td>
+            </tr>
+          }
+          @if (s.status === 'loading' && s.items.length === 0) {
+            @for (i of [1,2,3,4,5,6,7,8]; track i) {
+              <tr class="item-row">
+                <td><div class="skel skel--img"></div></td>
+                <td><div class="skel skel--text"></div></td>
+                <td><div class="skel skel--pill"></div></td>
+                <td><div class="skel skel--text skel--sm"></div></td>
+                <td><div class="skel skel--text skel--sm"></div></td>
+                <td><div class="skel skel--text skel--sm"></div></td>
+                <td><div class="skel skel--text skel--sm"></div></td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (s.hasMore) {
+      <div class="load-more">
+        <button class="btn btn--secondary" (click)="loadMore()" [disabled]="s.status === 'loading'">
+          @if (s.status === 'loading') { Loading… } @else { Load more }
+        </button>
+      </div>
+    }
+  </div>
+}

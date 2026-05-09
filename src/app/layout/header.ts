@@ -45,6 +45,15 @@ import {AsyncPipe} from '@angular/common';
           </span>
         </a>
 
+        <!-- Admin pill (only for admin users) -->
+        @if (isAdmin()) {
+          <a class="pill pill--admin"
+             routerLink="/admin"
+             aria-label="Admin panel">
+            Admin
+          </a>
+        }
+
         <!-- Login icon (only for guest) -->
         @if (!isAuthed()) {
           <a class="icon-btn"
@@ -75,7 +84,7 @@ import {AsyncPipe} from '@angular/common';
       margin: 0 auto;
 
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr auto auto auto;
       align-items: center;
       gap: 12px;
 
@@ -110,6 +119,21 @@ import {AsyncPipe} from '@angular/common';
       justify-self: start;
       font-family: var(--font-display);
       letter-spacing: 0.6px;
+    }
+
+    .pill--admin{
+      background: rgba(255, 122, 138, 0.12);
+      border-color: rgba(255, 122, 138, 0.32);
+      color: #ff7a8a;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 6px 14px;
+    }
+
+    .pill--admin:hover{
+      background: rgba(255, 122, 138, 0.20);
+      border-color: rgba(255, 122, 138, 0.45);
     }
 
     .pill--user{
@@ -185,6 +209,7 @@ export class AppHeader {
   private state = toSignal(this.auth.state$, { initialValue: { status: 'guest' } as any });
 
   isAuthed = computed(() => this.state()?.status === 'auth');
+  isAdmin = computed(() => this.state()?.status === 'auth' && this.state().user.role === 'admin');
   userName = computed(() => (this.state()?.status === 'auth' ? this.state().user.name : 'User'));
   avatarUrl = computed(() => (this.state()?.status === 'auth' ? (this.state().user.avatarUrl ?? null) : null));
   initial = computed(() => ((this.userName()?.trim()?.[0] ?? 'U').toUpperCase()));

@@ -14,5 +14,6 @@ export const routes: Routes = [
   { path: 'auth/register', component: AuthRegisterPage },
   { path: 'auth/password-reset', component: PasswordResetRequestPage },
   { path: 'auth/password-reset/confirm', component: PasswordResetConfirmPage },
+  { path: 'admin', loadChildren: () => import('./features/admin/admin.routes').then(m => m.routes) },
   { path: '**', component: NotFoundComponent },
 ];

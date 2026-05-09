@@ -1,0 +1,35 @@
+@if (!job && !error) {
+  <div class="jpc-loading">
+    <div class="jpc-skel"></div>
+    <div class="jpc-skel jpc-skel--sm"></div>
+  </div>
+} @else if (error) {
+  <div class="jpc-error">Failed to load job: {{ error }}</div>
+} @else if (job) {
+  <div class="jpc-card">
+    <div class="jpc-head">
+      <div class="jpc-type">{{ job.type }}</div>
+      <span class="jpc-status" [class]="statusClass(job.status)">{{ job.status }}</span>
+    </div>
+
+    <app-progress-bar
+      [value]="job.progress_percent"
+      [indeterminate]="job.status === 'pending'"
+      [running]="isRunning(job.status)"
+      [label]="job.total > 0 ? (job.processed | number) + ' / ' + (job.total | number) + ' items' : ''">
+    </app-progress-bar>
+
+    @if (job.error) {
+      <div class="jpc-err-msg">{{ job.error }}</div>
+    }
+
+    <div class="jpc-meta">
+      @if (job.started_at) {
+        <span>Started: {{ formatDate(job.started_at) }}</span>
+      }
+      @if (job.finished_at) {
+        <span>Finished: {{ formatDate(job.finished_at) }}</span>
+      }
+    </div>
+  </div>
+}

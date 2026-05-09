@@ -3,6 +3,7 @@ export type AuthUser = {
   name: string;
   email?: string;
   avatarUrl?: string | null;
+  role?: string;
 };
 
 export type AuthTokens = {

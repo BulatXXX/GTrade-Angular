@@ -1,0 +1,81 @@
+@if (state$ | async; as s) {
+  <div class="dash-page">
+    <div class="dash-header">
+      <h1 class="dash-title">Dashboard</h1>
+      <button class="btn-refresh" (click)="load()" [disabled]="s.status === 'loading'">
+        Refresh
+      </button>
+    </div>
+
+    @if (s.status === 'error') {
+      <div class="error-block">{{ s.error }}</div>
+    }
+
+    <!-- Stats cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Items</span>
+        <span class="stat-value">
+          @if (s.status === 'loading') { <span class="skel skel--val"></span> }
+          @else { {{ formatNum(s.stats?.total_items) }} }
+        </span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Active Items</span>
+        <span class="stat-value stat-value--accent">
+          @if (s.status === 'loading') { <span class="skel skel--val"></span> }
+          @else { {{ formatNum(s.stats?.active_items) }} }
+        </span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Price History Rows</span>
+        <span class="stat-value">
+          @if (s.status === 'loading') { <span class="skel skel--val"></span> }
+          @else { {{ formatNum(s.stats?.price_history_rows) }} }
+        </span>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-actions">
+      <a routerLink="/admin/catalog" class="quick-btn">
+        <span class="quick-icon">⊞</span>
+        Manage Catalog
+      </a>
+      <a routerLink="/admin/prices" class="quick-btn">
+        <span class="quick-icon">↑</span>
+        Sync Prices
+      </a>
+    </div>
+
+    <!-- Recent jobs -->
+    <div class="jobs-section">
+      <h2 class="section-title">Recent Jobs</h2>
+
+      @if (s.status === 'loading') {
+        <div class="jobs-loading">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="skel skel--row"></div>
+          }
+        </div>
+      } @else if (s.jobs.length === 0) {
+        <div class="jobs-empty">No jobs found.</div>
+      } @else {
+        <div class="jobs-list">
+          @for (job of s.jobs; track job.id) {
+            <div class="job-row">
+              <div class="job-type">{{ job.type }}</div>
+              <div class="job-progress">
+                <div class="job-prog-bar">
+                  <div class="job-prog-fill" [style.width.%]="job.progress_percent"></div>
+                </div>
+                <span class="job-pct">{{ job.progress_percent | number:'1.0-0' }}%</span>
+              </div>
+              <span class="job-status" [class]="statusClass(job.status)">{{ job.status }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

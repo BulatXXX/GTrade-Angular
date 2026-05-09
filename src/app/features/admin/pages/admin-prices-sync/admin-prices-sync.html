@@ -1,0 +1,79 @@
+@if (state$ | async; as s) {
+  <div class="prices-page">
+    <h1 class="page-title">Price History Sync</h1>
+
+    <div class="info-card">
+      <div class="info-icon">↑</div>
+      <div class="info-body">
+        <h2 class="info-title">About price sync</h2>
+        <p class="info-text">
+          Syncing price history fetches the latest market prices from all configured sources
+          and stores them in the price history database. This powers historical analytics
+          charts for all items. Sync jobs typically run in a few minutes but can take longer
+          for large catalogs.
+        </p>
+      </div>
+    </div>
+
+    @if (s.syncStatus === 'idle') {
+      <div class="action-area">
+        <button class="btn btn--start" (click)="startSync()">
+          <span class="btn-icon">▶</span>
+          Start Price History Sync
+        </button>
+      </div>
+    }
+
+    @if (s.syncStatus === 'running' && s.syncJobId) {
+      <div class="job-area">
+        <h2 class="section-title">Sync in progress</h2>
+        <app-job-progress-card [jobId]="s.syncJobId"></app-job-progress-card>
+        <button class="btn btn--secondary btn--sm mt-12" (click)="resetSync()">Dismiss</button>
+      </div>
+    }
+
+    @if (s.syncStatus === 'done') {
+      <div class="done-card">
+        <span class="done-icon">✓</span>
+        <span>Sync job completed.</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetSync()">Start another</button>
+      </div>
+    }
+
+    @if (s.syncStatus === 'error') {
+      <div class="error-card">
+        <span>Failed to start sync: {{ s.syncError }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetSync()">Retry</button>
+      </div>
+    }
+
+    <!-- History -->
+    <div class="history-section">
+      <div class="history-header">
+        <h2 class="section-title">Recent sync jobs</h2>
+        <button class="btn btn--ghost btn--sm" (click)="loadHistory()">Refresh</button>
+      </div>
+
+      @if (s.historyStatus === 'loading') {
+        @for (i of [1,2,3]; track i) {
+          <div class="skel skel--row"></div>
+        }
+      } @else if (s.historyJobs.length === 0) {
+        <div class="history-empty">No price sync jobs found.</div>
+      } @else {
+        <div class="history-list">
+          @for (job of s.historyJobs; track job.id) {
+            <div class="history-row">
+              <div class="history-type">price-history-sync</div>
+              <div class="history-dates">
+                @if (job.started_at) { <span>{{ formatDate(job.started_at) }}</span> }
+              </div>
+              <span class="job-status" [class]="statusClass(job.status)">{{ job.status }}</span>
+              <span class="job-pct">{{ job.progress_percent | number:'1.0-0' }}%</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

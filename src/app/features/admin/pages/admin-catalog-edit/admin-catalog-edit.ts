@@ -1,0 +1,148 @@
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ReactiveFormsModule, FormControl, FormGroup, FormArray } from '@angular/forms';
+import { BehaviorSubject, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AdminApiService } from '../../../../core/admin/admin-api.service';
+import { CatalogItem } from '../../../../core/models/item';
+import { UpdateItemRequest } from '../../../../core/admin/admin.types';
+import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
+
+type Status = 'loading' | 'ready' | 'error' | 'saving';
+type EditState = { status: Status; item: CatalogItem | null; error?: string; saveError?: string; saved?: boolean };
+
+const initial: EditState = { status: 'loading', item: null };
+
+@Component({
+  selector: 'app-admin-catalog-edit',
+  standalone: true,
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  templateUrl: './admin-catalog-edit.html',
+  styleUrl: './admin-catalog-edit.scss',
+})
+export class AdminCatalogEditPage implements OnInit {
+  private api = inject(AdminApiService);
+  private confirm = inject(ConfirmDialogService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+  private stateSubject = new BehaviorSubject<EditState>(initial);
+  state$ = this.stateSubject.asObservable();
+
+  itemId!: string;
+
+  form = new FormGroup({
+    name: new FormControl(''),
+    description: new FormControl(''),
+    image_url: new FormControl(''),
+    is_active: new FormControl(true),
+    translations: new FormArray<FormGroup>([]),
+  });
+
+  get translations(): FormArray { return this.form.get('translations') as FormArray; }
+
+  ngOnInit(): void {
+    this.itemId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.loadItem();
+  }
+
+  loadItem(): void {
+    this.patch({ status: 'loading', error: undefined });
+    this.api.getItem(this.itemId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(err => {
+        this.patch({ status: 'error', error: String(err?.message ?? err) });
+        return of(null);
+      }),
+    ).subscribe(item => {
+      if (!item) return;
+      this.patch({ status: 'ready', item });
+      this.populateForm(item);
+    });
+  }
+
+  private populateForm(item: CatalogItem): void {
+    this.form.patchValue({
+      name: item.name ?? '',
+      description: item.description ?? '',
+      image_url: item.image_url ?? '',
+      is_active: item.is_active ?? true,
+    });
+    this.translations.clear();
+  }
+
+  addTranslation(): void {
+    const group = new FormGroup({
+      language_code: new FormControl('en'),
+      name: new FormControl(''),
+      description: new FormControl(''),
+    });
+    this.translations.push(group);
+  }
+
+  removeTranslation(index: number): void {
+    this.translations.removeAt(index);
+  }
+
+  save(): void {
+    const s = this.stateSubject.value;
+    if (!s.item) return;
+
+    const val = this.form.value;
+    const req: UpdateItemRequest = {};
+    if (val.name !== s.item.name) req.name = val.name ?? undefined;
+    if ((val.description ?? '') !== (s.item.description ?? '')) req.description = val.description ?? undefined;
+    if ((val.image_url ?? '') !== (s.item.image_url ?? '')) req.image_url = val.image_url ?? undefined;
+    if (val.is_active !== s.item.is_active) req.is_active = val.is_active ?? undefined;
+    if (this.translations.length > 0) {
+      req.translations = this.translations.value.map((t: any) => ({
+        language_code: t.language_code,
+        name: t.name,
+        description: t.description || undefined,
+      }));
+    }
+
+    this.patch({ status: 'saving', saveError: undefined, saved: false });
+    this.api.updateItem(this.itemId, req).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(err => {
+        this.patch({ status: 'ready', saveError: String(err?.message ?? err) });
+        return of(null);
+      }),
+    ).subscribe(item => {
+      if (!item) return;
+      this.patch({ status: 'ready', item, saved: true });
+      this.populateForm(item);
+      setTimeout(() => this.patch({ saved: false }), 3000);
+    });
+  }
+
+  async deleteItem(): Promise<void> {
+    const s = this.stateSubject.value;
+    if (!s.item) return;
+
+    const ok = await this.confirm.confirm({
+      title: 'Delete item',
+      message: `Delete "${s.item.name}"? This cannot be undone.`,
+      danger: true,
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
+
+    this.api.deleteItem(this.itemId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(err => {
+        this.patch({ saveError: String(err?.message ?? err) });
+        return of(null);
+      }),
+    ).subscribe(() => {
+      this.router.navigate(['/admin/catalog']);
+    });
+  }
+
+  private patch(p: Partial<EditState>): void {
+    this.stateSubject.next({ ...this.stateSubject.value, ...p });
+  }
+}

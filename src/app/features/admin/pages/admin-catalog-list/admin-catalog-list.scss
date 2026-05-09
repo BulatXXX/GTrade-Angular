@@ -1,0 +1,356 @@
+.catalog-page {
+  max-width: 1100px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.action-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 140ms ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn--accent {
+  background: rgba(255, 122, 138, 0.15);
+  border-color: rgba(255, 122, 138, 0.35);
+  color: var(--admin-accent, #ff7a8a);
+}
+
+.btn--accent:hover:not(:disabled) {
+  background: rgba(255, 122, 138, 0.24);
+}
+
+.btn--secondary {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.10);
+  padding: 5px 12px;
+}
+
+.btn--danger {
+  background: rgba(255, 80, 80, 0.10);
+  border-color: rgba(255, 80, 80, 0.28);
+  color: #ff8c8c;
+  padding: 5px 12px;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: rgba(255, 80, 80, 0.18);
+}
+
+.btn--sm {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.mt-8 { margin-top: 8px; }
+
+/* Inline cards */
+.inline-card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.inline-card--done {
+  border-color: rgba(126, 255, 192, 0.28);
+  background: rgba(126, 255, 192, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #7effc0;
+  font-size: 13px;
+}
+
+.inline-card--error {
+  border-color: rgba(255, 80, 80, 0.28);
+  background: rgba(255, 80, 80, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ff8c8c;
+  font-size: 13px;
+}
+
+.inline-card__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* Import form */
+.import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.55;
+}
+
+.field-input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.88);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: 140ms ease;
+}
+
+.field-input:focus {
+  border-color: rgba(255, 122, 138, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-input {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.88);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: 140ms ease;
+}
+
+.filter-input--search {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-input:focus {
+  border-color: rgba(255, 122, 138, 0.35);
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(18, 20, 28, 0.9);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.75;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Error */
+.error-block {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 80, 80, 0.35);
+  background: rgba(255, 80, 80, 0.08);
+  border-radius: 10px;
+  color: #ff8c8c;
+  font-size: 13px;
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.items-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.items-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+
+.item-row:last-child td {
+  border-bottom: none;
+}
+
+.item-row--inactive {
+  opacity: 0.5;
+}
+
+.cell-img {
+  width: 44px;
+}
+
+.item-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+.item-thumb-empty {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cell-name {
+  font-weight: 500;
+  max-width: 240px;
+}
+
+.cell-slug {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  opacity: 0.6;
+  max-width: 160px;
+}
+
+.cell-date {
+  white-space: nowrap;
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.cell-actions {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.game-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.game-pill--warframe { color: #7ad7ff; background: rgba(122,215,255,0.12); border-color: rgba(122,215,255,0.25); }
+.game-pill--eve { color: #ffb347; background: rgba(255,179,71,0.12); border-color: rgba(255,179,71,0.25); }
+.game-pill--tarkov { color: #b7ff7a; background: rgba(183,255,122,0.12); border-color: rgba(183,255,122,0.25); }
+
+/* Load more */
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+/* Skeleton */
+.skel {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  animation: shimmer 1.4s infinite;
+}
+
+.skel--img { width: 36px; height: 36px; border-radius: 8px; }
+.skel--text { height: 14px; width: 80%; border-radius: 6px; }
+.skel--text.skel--sm { width: 60%; }
+.skel--pill { height: 18px; width: 60px; border-radius: 999px; }
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}

@@ -1,0 +1,29 @@
+<div class="admin-layout">
+  <nav class="admin-sidebar">
+    <div class="sidebar-brand">
+      <a routerLink="/items" class="brand-back">← GTrade</a>
+      <span class="brand-pill">Admin</span>
+    </div>
+
+    <ul class="nav-list">
+      @for (item of navItems; track item.path) {
+        <li class="nav-item">
+          <a class="nav-link"
+             [routerLink]="item.path"
+             routerLinkActive="nav-link--active">
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    <div class="sidebar-footer">
+      <span class="sidebar-user">{{ userName() }}</span>
+    </div>
+  </nav>
+
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

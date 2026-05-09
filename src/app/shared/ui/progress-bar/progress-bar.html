@@ -1,0 +1,16 @@
+<div class="pb-wrap">
+  @if (label) {
+    <div class="pb-label">{{ label }}</div>
+  }
+  <div class="pb-track" [class.pb-indeterminate]="indeterminate">
+    @if (indeterminate) {
+      <div class="pb-fill pb-fill--indeterminate"></div>
+    } @else {
+      <div class="pb-fill" [style.width.%]="value" [class.pb-fill--running]="running">
+        @if (value > 10) {
+          <span class="pb-text">{{ value | number:'1.0-0' }}%</span>
+        }
+      </div>
+    }
+  </div>
+</div>

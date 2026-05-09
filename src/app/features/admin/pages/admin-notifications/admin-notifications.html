@@ -1,0 +1,143 @@
+@if (state$ | async; as s) {
+  <div class="notif-page">
+    <h1 class="page-title">Notifications</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.tab--active]="s.tab === 'alerts'" (click)="setTab('alerts')">
+        Price Alerts
+      </button>
+      <button class="tab" [class.tab--active]="s.tab === 'message'" (click)="setTab('message')">
+        Custom Message
+      </button>
+    </div>
+
+    <!-- Price alerts tab -->
+    @if (s.tab === 'alerts') {
+      <div class="tab-panel">
+        <div class="target-picker">
+          <button class="target-btn" [class.target-btn--active]="s.alertTarget === 'all'" (click)="setAlertTarget('all')">
+            All users
+          </button>
+          <button class="target-btn" [class.target-btn--active]="s.alertTarget === 'user'" (click)="setAlertTarget('user')">
+            Specific user
+          </button>
+        </div>
+
+        @if (s.alertTarget === 'user') {
+          <div class="form-row">
+            <label class="field-label">User ID</label>
+            <input
+              class="field-input"
+              [value]="s.alertUserId"
+              (input)="updateAlertUserId($any($event.target).value)"
+              type="number"
+              placeholder="123"
+            />
+          </div>
+        }
+
+        @if (s.alertStatus === 'idle') {
+          <button class="btn btn--accent" (click)="runAlerts()">
+            Run price alerts
+          </button>
+        }
+
+        @if (s.alertStatus === 'running') {
+          <div class="in-flight-card">
+            <p class="in-flight-text">Sending price alerts…</p>
+            <app-progress-bar [indeterminate]="true" [label]="'Processing users'"></app-progress-bar>
+          </div>
+        }
+
+        @if (s.alertStatus === 'done' && s.alertResult) {
+          <div class="result-card">
+            <h3 class="result-card__title">Done</h3>
+            <div class="result-grid">
+              <div class="result-stat">
+                <span class="result-label">Users checked</span>
+                <span class="result-value">{{ formatNum(s.alertResult.users_checked) }}</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">Emails sent</span>
+                <span class="result-value result-value--accent">{{ formatNum(s.alertResult.emails_sent) }}</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">Users with diffs</span>
+                <span class="result-value">{{ formatNum(s.alertResult.users_with_diff) }}</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">Changes found</span>
+                <span class="result-value">{{ formatNum(s.alertResult.changes_found) }}</span>
+              </div>
+            </div>
+            <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">Run again</button>
+          </div>
+        }
+
+        @if (s.alertStatus === 'error') {
+          <div class="error-card">
+            <span>{{ s.alertError }}</span>
+            <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">Retry</button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Custom message tab -->
+    @if (s.tab === 'message') {
+      <div class="tab-panel">
+        <form [formGroup]="messageForm" class="message-form" (ngSubmit)="sendMessage()">
+          <div class="form-row">
+            <label class="field-label">User ID *</label>
+            <input formControlName="user_id" type="number" class="field-input field-input--sm" placeholder="123" />
+          </div>
+          <div class="form-row">
+            <label class="field-label">Subject *</label>
+            <input formControlName="subject" class="field-input" placeholder="Email subject" />
+          </div>
+          <div class="form-row">
+            <label class="field-label">HTML body</label>
+            <textarea formControlName="html_body" class="field-input field-textarea" rows="6" placeholder="<p>HTML email body…</p>"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="field-label">Text body</label>
+            <textarea formControlName="text_body" class="field-input field-textarea" rows="3" placeholder="Plain text fallback…"></textarea>
+          </div>
+
+          @if (s.msgStatus === 'error') {
+            <div class="error-card">{{ s.msgError }}</div>
+          }
+
+          @if (s.msgStatus === 'done') {
+            <div class="success-card">Message sent successfully.</div>
+          }
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--accent" [disabled]="s.msgStatus === 'sending'">
+              @if (s.msgStatus === 'sending') { Sending… } @else { Send message }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Recent runs -->
+    @if (s.recent.length > 0) {
+      <div class="recent-section">
+        <h2 class="recent-title">Recent runs</h2>
+        <div class="recent-list">
+          @for (entry of s.recent; track entry.timestamp) {
+            <div class="recent-row">
+              <span class="recent-type" [class.recent-type--msg]="entry.type === 'message'">
+                {{ entry.type === 'alert' ? 'alert' : 'msg' }}
+              </span>
+              <span class="recent-summary">{{ entry.summary }}</span>
+              <span class="recent-date">{{ formatDate(entry.timestamp) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

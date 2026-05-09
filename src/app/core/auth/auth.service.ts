@@ -4,7 +4,7 @@ import {BehaviorSubject, map, Observable, tap} from 'rxjs';
 import {API} from '../api/api.config';
 import {AuthState, AuthTokens, AuthUser} from './auth.types';
 
-type TokenPairResponse = { access_token: string; refresh_token: string; token_type: string; expires_in: number };
+type TokenPairResponse = { access_token: string; refresh_token: string; token_type: string; expires_in: number; role?: string };
 type LoginReq = { email: string; password: string };
 type RegisterReq = { email: string; password: string };
 
@@ -23,6 +23,7 @@ export class AuthService {
   get refreshToken(): string | null { return this.snapshot.status === 'auth' ? this.snapshot.tokens.refreshToken : null; }
   get userId(): string | null { return this.snapshot.status === 'auth' ? this.snapshot.user.id : null; }
   get isAuthed(): boolean { return !!this.accessToken; }
+  get isAdmin(): boolean { return this.snapshot.status === 'auth' && this.snapshot.user.role === 'admin'; }
 
   login(req: LoginReq): Observable<AuthUser> {
     return this.http.post<TokenPairResponse>(`${API.auth}/login`, req).pipe(
@@ -67,7 +68,8 @@ export class AuthService {
       expiresIn: res.expires_in,
     };
     const id = readJwtSub(res.access_token) ?? 'me';
-    const user: AuthUser = { id, email, name: email?.split('@')[0] || `User #${id}`, avatarUrl: null };
+    const role = res.role ?? readJwtRole(res.access_token) ?? undefined;
+    const user: AuthUser = { id, email, name: email?.split('@')[0] || `User #${id}`, avatarUrl: null, role };
     const state: AuthState = { status: 'auth', user, tokens };
     localStorage.setItem(this.key, JSON.stringify(state));
     this.stateSubject.next(state);
@@ -89,5 +91,15 @@ function readJwtSub(token: string): string | null {
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
     const json = decodeURIComponent(atob(normalized).split('').map(c => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`).join(''));
     return String(JSON.parse(json).sub ?? '') || null;
+  } catch { return null; }
+}
+
+function readJwtRole(token: string): string | null {
+  try {
+    const payload = token.split('.')[1];
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(atob(normalized).split('').map(c => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`).join(''));
+    const parsed = JSON.parse(json);
+    return String(parsed.role ?? parsed.roles?.[0] ?? '') || null;
   } catch { return null; }
 }
