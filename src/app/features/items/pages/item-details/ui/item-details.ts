@@ -84,11 +84,13 @@ export class ItemDetailsPage {
   }
 
   chartPoints(item: ItemDetails, kind: 'trend' | 'bars' = 'trend'): ChartPoint[] {
+    const bounds = this.chartBounds(item);
+    if (!bounds) return [];
     const history = item.priceHistory;
     if (history && history.length >= 2) {
-      return this.historyToPoints(history);
+      return this.historyToPoints(history, bounds);
     }
-    return this.syntheticPoints(item, kind);
+    return this.syntheticPoints(item, kind, bounds);
   }
 
   smoothPath(points: ChartPoint[]): string {
@@ -117,13 +119,21 @@ export class ItemDetailsPage {
 
   xLabels(item: ItemDetails): AxisLabel[] {
     const h = item.priceHistory;
-    if (!h || h.length < 2) return [];
-    const n = h.length;
-    const count = Math.min(5, n);
-    const step = (n - 1) / (count - 1);
-    return Array.from({ length: count }, (_, i) => {
-      const idx = Math.round(i * step);
-      return { text: this.shortDate(h[idx].collected_on), pos: (idx / (n - 1)) * 100 };
+    if (h && h.length >= 2) {
+      const n = h.length;
+      const count = Math.min(5, n);
+      const step = (n - 1) / (count - 1);
+      return Array.from({ length: count }, (_, i) => {
+        const idx = Math.round(i * step);
+        return { text: this.shortDate(h[idx].collected_on), pos: (idx / (n - 1)) * 100 };
+      });
+    }
+    const today = new Date();
+    const spanDays = 30;
+    return [0, 1, 2, 3, 4].map(i => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - Math.round((4 - i) * spanDays / 4));
+      return { text: this.shortDate(d.toISOString()), pos: i * 25 };
     });
   }
 
@@ -138,30 +148,32 @@ export class ItemDetailsPage {
   }
 
   yLabels(item: ItemDetails): Array<{ text: string; pos: number }> {
-    const r = this.chartRange(item);
-    if (!r) return [];
-    const pad = (r.max - r.min) * 0.1 || r.max * 0.05 || 1;
-    const lo = r.min - pad;
-    const hi = r.max + pad;
+    const b = this.chartBounds(item);
+    if (!b) return [];
     return [
-      { text: this.formatPrice(hi, r.currency),            pos: 8  },
-      { text: this.formatPrice((hi + lo) / 2, r.currency), pos: 44 },
-      { text: this.formatPrice(lo, r.currency),            pos: 80 },
+      { text: this.formatPrice(b.hi, b.currency),              pos: 8  },
+      { text: this.formatPrice((b.hi + b.lo) / 2, b.currency), pos: 44 },
+      { text: this.formatPrice(b.lo, b.currency),              pos: 80 },
     ];
   }
 
-  private chartRange(item: ItemDetails): { min: number; max: number; currency?: string } | null {
+  private chartBounds(item: ItemDetails): { lo: number; hi: number; currency?: string } | null {
     const h = item.priceHistory;
     if (h && h.length >= 2) {
       const values = h.map(p => p.value);
-      return { min: Math.min(...values), max: Math.max(...values), currency: h[0]?.currency };
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const pad = (max - min) * 0.1 || max * 0.05 || 1;
+      return { lo: min - pad, hi: max + pad, currency: h[0]?.currency };
     }
     const values = this.baseValues(item.price);
     if (!values.length) return null;
     const min = Math.max(0, Math.min(...values));
     const max = Math.max(...values, min + 1);
     if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return null;
-    return { min, max, currency: item.price?.currency };
+    const range = max - min;
+    const pad = Math.max(range * 0.35, max * 0.08, 1);
+    return { lo: Math.max(0, min - pad), hi: max + pad, currency: item.price?.currency };
   }
 
   endpointBadges(item: ItemDetails): { first?: { x: number; y: number; price: string; date: string }; last?: { x: number; y: number; price: string; date: string } } {
@@ -196,16 +208,100 @@ export class ItemDetailsPage {
     return currency ? `${formatted} ${currency}` : formatted;
   }
 
-  bars(item: ItemDetails): Array<{ x: number; y: number; h: number; up: boolean }> {
-    const points = this.chartPoints(item, 'bars');
+  bars(item: ItemDetails): Array<{ x: number; y: number; w: number; h: number; up: boolean }> {
+    const points = this.hasRealHistory(item)
+      ? this.dailyHistoryPoints(item.priceHistory!)
+      : this.chartPoints(item, 'bars');
+    const n = points.length;
+    if (!n) return [];
+    const span = 86;
+    const slot = span / n;
+    const w = Math.max(1.4, Math.min(4.2, slot * 0.62));
     return points.map((p, i) => ({
-      x: 7 + i * (86 / Math.max(points.length - 1, 1)),
+      x: 7 + i * slot + (slot - w) / 2,
       y: p.y,
+      w,
       h: 92 - p.y,
       up: i === 0 ? true : p.value !== undefined && points[i - 1].value !== undefined
         ? (p.value! >= points[i - 1].value!)
         : true,
     }));
+  }
+
+  barsHeader(item: ItemDetails): { label: string; value: string; caption: string } {
+    if (this.hasRealHistory(item)) {
+      const days = this.dailyHistoryPoints(item.priceHistory!).length;
+      return {
+        label: 'Daily prices',
+        value: `${days} ${days === 1 ? 'day' : 'days'}`,
+        caption: 'Last close price per day · green = up vs prev, red = down',
+      };
+    }
+    const game = String(item.game ?? '').toLowerCase();
+    const price = item.price;
+    const a = price?.analytics;
+    const p = price?.pricing;
+    const cur = price?.currency;
+
+    if (game === 'warframe') {
+      const orders = a?.sample_size;
+      return {
+        label: 'Open orders',
+        value: orders != null ? this.formatPrice(orders) : '—',
+        caption: 'Active sell orders on the marketplace',
+      };
+    }
+    if (game === 'eve') {
+      const spread = p?.spread;
+      return {
+        label: 'Spread',
+        value: spread != null ? this.formatPrice(spread, cur) : '—',
+        caption: 'Adjusted-vs-base regional price difference',
+      };
+    }
+    if (game === 'tarkov') {
+      const low = a?.low;
+      const high = a?.high;
+      const range = (low != null && high != null) ? high - low : null;
+      return {
+        label: 'Price range',
+        value: range != null ? this.formatPrice(range, cur) : '—',
+        caption: 'Difference between recent flea-market low and high',
+      };
+    }
+    return {
+      label: 'Liquidity',
+      value: a?.sample_size != null ? this.formatPrice(a.sample_size) : '—',
+      caption: 'Snapshot of recent market activity',
+    };
+  }
+
+  trendCaption(item: ItemDetails): string {
+    if (this.hasRealHistory(item)) {
+      const h = item.priceHistory!;
+      const cur = h[0]?.currency ?? '';
+      return `Price${cur ? ` in ${cur}` : ''} across ${h.length} recent observations`;
+    }
+    const cur = item.price?.currency;
+    return `Recent price activity${cur ? ` · ${cur}` : ''}`;
+  }
+
+  private dailyHistoryPoints(history: PriceHistoryEntry[]): ChartPoint[] {
+    const byDay = new Map<string, PriceHistoryEntry>();
+    for (const entry of history) {
+      const key = entry.collected_on || entry.collected_at?.slice(0, 10) || '';
+      if (!key) continue;
+      byDay.set(key, entry);
+    }
+    const ordered = Array.from(byDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, entry]) => entry);
+    if (!ordered.length) return [];
+    const values = ordered.map(p => p.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const pad = (max - min) * 0.1 || max * 0.05 || 1;
+    return this.historyToPoints(ordered, { lo: min - pad, hi: max + pad });
   }
 
   sparkline(points: ChartPoint[]): string {
@@ -216,37 +312,31 @@ export class ItemDetailsPage {
     return !!(item.priceHistory && item.priceHistory.length >= 2);
   }
 
-  private historyToPoints(history: PriceHistoryEntry[]): ChartPoint[] {
-    const values = history.map(h => h.value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const pad = (max - min) * 0.1 || max * 0.05 || 1;
-    const lo = min - pad;
-    const hi = max + pad;
+  private historyToPoints(history: PriceHistoryEntry[], bounds: { lo: number; hi: number }): ChartPoint[] {
+    const span = bounds.hi - bounds.lo || 1;
     const n = history.length;
     return history.map((h, i) => ({
       x: 4 + (i / Math.max(n - 1, 1)) * 92,
-      y: clamp(8 + (1 - (h.value - lo) / (hi - lo)) * 72, 8, 80),
+      y: clamp(8 + (1 - (h.value - bounds.lo) / span) * 72, 8, 80),
       value: h.value,
       date: h.collected_on,
     }));
   }
 
-  private syntheticPoints(item: ItemDetails, kind: 'trend' | 'bars'): ChartPoint[] {
+  private syntheticPoints(item: ItemDetails, kind: 'trend' | 'bars', bounds: { lo: number; hi: number }): ChartPoint[] {
     const price = item.price;
     const seed = hashString(JSON.stringify({ id: item.externalId, game: item.game, pricing: price?.pricing, analytics: price?.analytics, kind }));
-    const values = this.baseValues(price);
-    const min = Math.max(0, Math.min(...values));
-    const max = Math.max(...values, min + 1);
-    const pad = (max - min) * 0.1 || max * 0.05 || 1;
-    const lo = min - pad;
-    const hi = max + pad;
+    const span = bounds.hi - bounds.lo || 1;
+    const center = (bounds.lo + bounds.hi) / 2;
+    const halfSpan = span / 2;
     return Array.from({ length: 18 }, (_, i) => {
-      const wave = Math.sin((seed % 19 + i) / 2.4) * 0.18 + Math.cos((seed % 31 + i) / 3.7) * 0.11;
-      const noise = ((hashString(`${seed}:${kind}:${i}`) % 100) / 100 - 0.5) * 0.22;
-      const anchor = values[i % values.length] || max;
-      const raw = kind === 'bars' ? anchor * (0.45 + Math.abs(wave) + Math.abs(noise)) : anchor * (1 + wave + noise);
-      const y = 8 + (1 - (raw - lo) / (hi - lo || 1)) * 72;
+      const wave = Math.sin((seed % 19 + i) / 2.4) * 0.6 + Math.cos((seed % 31 + i) / 3.7) * 0.32;
+      const noise = ((hashString(`${seed}:${kind}:${i}`) % 100) / 100 - 0.5) * 0.45;
+      const drift = (wave + noise) * 0.78;
+      const raw = kind === 'bars'
+        ? bounds.lo + span * (0.32 + Math.abs(wave) * 0.5 + Math.abs(noise) * 0.3)
+        : center + halfSpan * drift;
+      const y = 8 + (1 - (raw - bounds.lo) / span) * 72;
       return { x: 4 + i * 5.2, y: clamp(y, 8, 80), value: raw };
     });
   }

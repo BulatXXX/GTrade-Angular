@@ -402,6 +402,13 @@
 }
 .chart-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .7px; opacity: .82; }
 .chart-head b { color: var(--game-accent); font-weight: 700; }
+.chart-caption {
+  margin: 4px 0 0;
+  font-size: 11px;
+  letter-spacing: .2px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.4;
+}
 /* ── Chart layout ── */
 .chart-wrap { position: relative; margin-top: 10px; }
 

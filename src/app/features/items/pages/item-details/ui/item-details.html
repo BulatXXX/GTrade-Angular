@@ -37,6 +37,7 @@
                 <b>{{ s.item.price?.market_kind || 'market' }}</b>
               </div>
             </div>
+            <p class="chart-caption">{{ trendCaption(s.item) }}</p>
 
             @let trend = chartPoints(s.item, 'trend');
             @let yl = yLabels(s.item);
@@ -95,24 +96,22 @@
                     <span class="x-label" [style.left.%]="lbl.pos">{{ lbl.text }}</span>
                   }
                 </div>
-              } @else {
-                <div class="chart-x-axis chart-x-axis--synthetic">
-                  <span class="x-label-hint">synthetic preview</span>
-                </div>
               }
             </div>
           </article>
 
           <!-- Daily price bars chart -->
+          @let bh = barsHeader(s.item);
           <article class="chart-card">
             <div class="chart-head">
-              <span>{{ hasRealHistory(s.item) ? 'Daily prices' : 'Liquidity' }}</span>
-              <b>{{ s.item.price?.analytics?.sample_size ?? '—' }}</b>
+              <span>{{ bh.label }}</span>
+              <b>{{ bh.value }}</b>
             </div>
+            <p class="chart-caption">{{ bh.caption }}</p>
             <svg class="chart bars" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Daily price bars">
               @for (bar of bars(s.item); track bar.x) {
                 <rect class="bar" [class.bar-up]="bar.up" [class.bar-dn]="!bar.up"
-                  [attr.x]="bar.x" [attr.y]="bar.y" width="3.2" [attr.height]="bar.h" rx="1.2"/>
+                  [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.w" [attr.height]="bar.h" rx="1.2"/>
               }
             </svg>
           </article>
