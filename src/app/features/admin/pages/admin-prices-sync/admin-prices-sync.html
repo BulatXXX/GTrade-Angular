@@ -64,7 +64,7 @@
         <div class="history-list">
           @for (job of s.historyJobs; track job.id) {
             <div class="history-row">
-              <div class="history-type">price-history-sync</div>
+              <div class="history-type">{{ jobLabel(job) }}</div>
               <div class="history-dates">
                 @if (job.started_at) { <span>{{ formatDate(job.started_at) }}</span> }
               </div>

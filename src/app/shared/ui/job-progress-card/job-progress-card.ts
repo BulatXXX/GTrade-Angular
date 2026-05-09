@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AdminJobPoller } from '../../../core/admin/admin-job-poller';
 import { AdminJob } from '../../../core/admin/admin.types';
+import { jobLabel } from '../../../core/admin/admin-job-label';
 import { ProgressBarComponent } from '../progress-bar/progress-bar';
 
 @Component({
@@ -17,6 +18,7 @@ export class JobProgressCardComponent implements OnChanges, OnDestroy {
 
   job: AdminJob | null = null;
   error: string | null = null;
+  jobLabel = jobLabel;
 
   private sub: Subscription | null = null;
 

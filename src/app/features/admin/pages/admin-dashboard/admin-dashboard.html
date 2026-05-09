@@ -64,7 +64,7 @@
         <div class="jobs-list">
           @for (job of s.jobs; track job.id) {
             <div class="job-row">
-              <div class="job-type">{{ job.type }}</div>
+              <div class="job-type">{{ jobLabel(job) }}</div>
               <div class="job-progress">
                 <div class="job-prog-bar">
                   <div class="job-prog-fill" [style.width.%]="job.progress_percent"></div>

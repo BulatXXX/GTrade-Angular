@@ -53,7 +53,7 @@ export class AdminCatalogListPage implements OnInit {
     query: new FormControl(''),
     game: new FormControl(''),
     language: new FormControl('en'),
-    active_only: new FormControl(false),
+    active_only: new FormControl(true),
   });
 
   importForm = new FormGroup({
@@ -80,7 +80,7 @@ export class AdminCatalogListPage implements OnInit {
 
     const req$ = query?.trim()
       ? this.api.searchItems({ q: query.trim(), game: game || undefined, language: language || undefined, limit: PAGE_SIZE, offset })
-      : this.api.listItems({ game: game || undefined, language: language || undefined, active_only: active_only ?? false, limit: PAGE_SIZE, offset });
+      : this.api.listItems({ game: game || undefined, language: language || undefined, active_only: active_only ?? true, limit: PAGE_SIZE, offset });
 
     req$.pipe(
       takeUntilDestroyed(this.destroyRef),

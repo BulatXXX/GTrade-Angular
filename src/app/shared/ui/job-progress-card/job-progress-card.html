@@ -8,7 +8,7 @@
 } @else if (job) {
   <div class="jpc-card">
     <div class="jpc-head">
-      <div class="jpc-type">{{ job.type }}</div>
+      <div class="jpc-type">{{ jobLabel(job) }}</div>
       <span class="jpc-status" [class]="statusClass(job.status)">{{ job.status }}</span>
     </div>
 

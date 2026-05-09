@@ -15,7 +15,7 @@
             <h1 class="name">{{ s.item.name }}</h1>
             <div class="id">Catalog ID: {{ s.item.id }}</div>
             <div class="id">External ID: {{ s.item.externalId }}</div>
-            <div class="price">Primary price: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span>{{ s.item.price?.currency }}</span></div>
+            <div class="price" [class.is-refreshing]="s.priceLoading">Primary price: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span> {{ s.item.price?.currency }}</span></div>
             @if (s.item.game === 'tarkov') {
               <div class="seg" role="tablist" aria-label="Tarkov mode"><button type="button" class="seg__btn" [class.active]="s.mode === 'regular'" (click)="setMode('regular')">PvP</button><button type="button" class="seg__btn" [class.active]="s.mode === 'pve'" (click)="setMode('pve')">PvE</button></div>
             }
@@ -23,7 +23,7 @@
         </div>
         @if (s.item.description) { <p class="desc">{{ s.item.description }}</p> }
 
-        <div class="analytics-grid">
+        <div class="analytics-grid" [class.is-refreshing]="s.priceLoading">
 
           <!-- Price trend chart -->
           <article class="chart-card chart-card--wide">
@@ -39,28 +39,54 @@
             </div>
 
             @let trend = chartPoints(s.item, 'trend');
+            @let yl = yLabels(s.item);
+            @let pb = endpointBadges(s.item);
             <div class="chart-wrap">
-              <svg class="chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Price trend chart">
-                <defs>
-                  <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" class="grad-top"/>
-                    <stop offset="85%" class="grad-bot"/>
-                  </linearGradient>
-                </defs>
-                <!-- Grid -->
-                <line class="grid-line" x1="0" y1="28" x2="100" y2="28"/>
-                <line class="grid-line" x1="0" y1="54" x2="100" y2="54"/>
-                <line class="grid-line" x1="0" y1="80" x2="100" y2="80"/>
-                <!-- Area -->
-                <path class="chart-area-grad" [attr.d]="areaPath(trend)" fill="url(#priceGrad)"/>
-                <!-- Smooth line -->
-                <path class="chart-line-smooth" [attr.d]="smoothPath(trend)"/>
-                <!-- Endpoint dots -->
-                @if (trend.length >= 2) {
-                  <circle class="dot-end" [attr.cx]="trend[0].x" [attr.cy]="trend[0].y" r="1.6"/>
-                  <circle class="dot-end dot-last" [attr.cx]="trend[trend.length - 1].x" [attr.cy]="trend[trend.length - 1].y" r="2.4"/>
+              <div class="chart-area">
+                <svg class="chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Price trend chart">
+                  <defs>
+                    <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" class="grad-top"/>
+                      <stop offset="85%" class="grad-bot"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- Grid -->
+                  <line class="grid-line" x1="0" y1="8"  x2="100" y2="8"/>
+                  <line class="grid-line" x1="0" y1="44" x2="100" y2="44"/>
+                  <line class="grid-line" x1="0" y1="80" x2="100" y2="80"/>
+                  <!-- Area -->
+                  <path class="chart-area-grad" [attr.d]="areaPath(trend)" fill="url(#priceGrad)"/>
+                  <!-- Smooth line -->
+                  <path class="chart-line-smooth" [attr.d]="smoothPath(trend)"/>
+                  <!-- Endpoint dots -->
+                  @if (trend.length >= 2) {
+                    <circle class="dot-end" [attr.cx]="trend[0].x" [attr.cy]="trend[0].y" r="1.6"/>
+                    <circle class="dot-end dot-last" [attr.cx]="trend[trend.length - 1].x" [attr.cy]="trend[trend.length - 1].y" r="2.4"/>
+                  }
+                </svg>
+
+                <!-- Y-axis price ticks -->
+                @if (yl.length) {
+                  <div class="chart-y-axis" aria-hidden="true">
+                    @for (tick of yl; track tick.pos) {
+                      <span class="y-label" [style.top.%]="tick.pos">{{ tick.text }}</span>
+                    }
+                  </div>
                 }
-              </svg>
+
+                <!-- Endpoint price/date badges -->
+                @if (pb.first) {
+                  <span class="point-badge point-badge--first" [style.left.%]="pb.first.x" [style.top.%]="pb.first.y">
+                    <b>{{ pb.first.price }}</b><em>{{ pb.first.date }}</em>
+                  </span>
+                }
+                @if (pb.last) {
+                  <span class="point-badge point-badge--last" [style.left.%]="pb.last.x" [style.top.%]="pb.last.y">
+                    <b>{{ pb.last.price }}</b><em>{{ pb.last.date }}</em>
+                  </span>
+                }
+              </div>
+
               <!-- X-axis date labels -->
               @let xlabels = xLabels(s.item);
               @if (xlabels.length) {
@@ -101,10 +127,44 @@
       </section>
     </div>
   } @else {
-    <div class="page">
+    <div class="page game-page theme-generic">
+      <div class="page-bg" aria-hidden="true"></div>
       <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>Back</span></a>
+
       @if (s.status === 'loading' || s.status === 'idle') {
-        <div class="card" aria-busy="true"><div class="top"><div class="icon-skel skel"></div><div class="titles"><div class="skel sk-title"></div><div class="skel sk-id"></div><div class="skel sk-price"></div></div></div></div>
+        <section class="card game-card" aria-busy="true">
+          <div class="game-backdrop" aria-hidden="true"></div>
+          <div class="top">
+            <div class="icon-wrap"><div class="skel sk-icon-fill"></div></div>
+            <div class="titles">
+              <div class="skel sk-eyebrow"></div>
+              <div class="skel sk-title"></div>
+              <div class="skel sk-id"></div>
+              <div class="skel sk-id"></div>
+              <div class="skel sk-price"></div>
+            </div>
+          </div>
+
+          <div class="skel sk-desc-line"></div>
+          <div class="skel sk-desc-line sk-desc-line--short"></div>
+
+          <div class="analytics-grid">
+            <article class="chart-card chart-card--wide">
+              <div class="chart-head"><div class="skel sk-chart-label"></div><div class="skel sk-chart-meta"></div></div>
+              <div class="skel sk-chart-area"></div>
+            </article>
+            <article class="chart-card">
+              <div class="chart-head"><div class="skel sk-chart-label"></div><div class="skel sk-chart-meta"></div></div>
+              <div class="skel sk-chart-area"></div>
+            </article>
+          </div>
+
+          <div class="stats game-stats">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="stat"><div class="skel sk-stat-label"></div><div class="skel sk-stat-value"></div></div>
+            }
+          </div>
+        </section>
       } @else if (s.status === 'error') {
         <div class="error"><h2>Item not found</h2><p class="muted">{{ s.errorMessage }}</p></div>
       }

@@ -5,6 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { AdminJob } from '../../../../core/admin/admin.types';
+import { jobLabel } from '../../../../core/admin/admin-job-label';
 import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { JobProgressCardComponent } from '../../../../shared/ui/job-progress-card/job-progress-card';
 
@@ -32,6 +33,7 @@ export class AdminPricesSyncPage implements OnInit {
   private destroyRef = inject(DestroyRef);
   private stateSubject = new BehaviorSubject<PricesState>(initial);
   state$ = this.stateSubject.asObservable();
+  jobLabel = jobLabel;
 
   ngOnInit(): void {
     this.loadHistory();

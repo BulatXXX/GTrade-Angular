@@ -1,4 +1,11 @@
-<div class="page">
+<div class="page search-page" [attr.data-theme]="(viewModel$ | async)?.game ?? 'all'">
+  <div class="page-bg-layers" aria-hidden="true">
+    <div class="bg-layer bg-tarkov"></div>
+    <div class="bg-layer bg-warframe"></div>
+    <div class="bg-layer bg-eve"></div>
+    <div class="bg-layer bg-generic"></div>
+  </div>
+
   <header class="header">
     <h1 class="title">Items search</h1>
     <p class="subtitle muted">Search the local GTrade catalog. Use game filter first for cleaner results.</p>

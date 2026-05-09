@@ -8,8 +8,8 @@ import {TrackedItemsService} from '../../../../core/services/items-tracked';
 import {GameMode, ItemDetails, ItemPreview} from '../../../../core/models/item';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
-export type DetailsUiState = { id: string | null; mode: GameMode; status: Status; item?: ItemDetails; tracked: boolean; errorMessage?: string };
-const initialState: DetailsUiState = { id: null, mode: 'regular', status: 'idle', tracked: false };
+export type DetailsUiState = { id: string | null; mode: GameMode; status: Status; item?: ItemDetails; tracked: boolean; priceLoading?: boolean; errorMessage?: string };
+const initialState: DetailsUiState = { id: null, mode: 'regular', status: 'idle', tracked: false, priceLoading: false };
 
 @Injectable({ providedIn: 'root' })
 export class ItemDetailsViewModel {
@@ -27,15 +27,22 @@ export class ItemDetailsViewModel {
       debounceTime(0),
       distinctUntilChanged((a, b) => a.id === b.id && a.mode === b.mode),
       switchMap(({ id, mode }) => {
-        if (!id) return of({ ...this.snapshot, status: 'idle' as const, item: undefined, tracked: false });
+        if (!id) return of({ ...this.snapshot, status: 'idle' as const, item: undefined, tracked: false, priceLoading: false });
+        const prev = this.snapshot;
+        const sameItemReload = prev.status === 'ready' && prev.id === id && !!prev.item;
+        const startState: DetailsUiState = sameItemReload
+          ? { ...prev, id, mode, priceLoading: true, errorMessage: undefined }
+          : { ...prev, id, mode, status: 'loading', item: undefined, tracked: false, priceLoading: false, errorMessage: undefined };
         return this.api.getItemById({ id, lang: 'en', gameMode: mode }).pipe(
           map(item => {
             const preview: ItemPreview = { id: item.id, game: item.game, source: item.source, externalId: item.externalId, name: item.name, iconLink: item.iconLink };
             this.history.add(preview);
-            return { ...this.snapshot, id, mode, status: 'ready' as const, item, tracked: this.trackedService.isTracked(item.id), errorMessage: undefined };
+            return { ...this.snapshot, id, mode, status: 'ready' as const, item, tracked: this.trackedService.isTracked(item.id), priceLoading: false, errorMessage: undefined };
           }),
-          startWith({ ...this.snapshot, id, mode, status: 'loading' as const, item: undefined, tracked: false, errorMessage: undefined }),
-          catchError(err => of({ ...this.snapshot, id, mode, status: 'error' as const, item: undefined, tracked: false, errorMessage: String(err?.error?.error ?? err?.message ?? err) })),
+          startWith(startState),
+          catchError(err => of(sameItemReload
+            ? { ...prev, id, mode, priceLoading: false, errorMessage: String(err?.error?.error ?? err?.message ?? err) }
+            : { ...prev, id, mode, status: 'error' as const, item: undefined, tracked: false, priceLoading: false, errorMessage: String(err?.error?.error ?? err?.message ?? err) })),
         );
       }),
       takeUntilDestroyed(this.destroyRef),

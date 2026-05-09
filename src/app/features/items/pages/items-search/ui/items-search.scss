@@ -6,6 +6,94 @@
   box-sizing: border-box;
 }
 
+/* search page is full-width to host the bg layers */
+.search-page {
+  position: relative;
+  max-width: none;
+  padding: 18px clamp(14px, 4vw, 42px) 42px;
+  min-height: calc(100vh - 120px);
+}
+.search-page > .header,
+.search-page > .filters,
+.search-page > .search-box,
+.search-page > .list,
+.search-page > .skeleton-list,
+.search-page > .hint,
+.search-page > .error {
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ========== Cross-fade game backgrounds ========== */
+.page-bg-layers {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+}
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  will-change: opacity;
+}
+.bg-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.78));
+}
+/* Active layer based on data-theme attribute */
+.search-page[data-theme='tarkov']   .bg-tarkov   { opacity: 1; }
+.search-page[data-theme='warframe'] .bg-warframe { opacity: 1; }
+.search-page[data-theme='eve']      .bg-eve      { opacity: 1; }
+.search-page[data-theme='all']      .bg-generic  { opacity: 1; }
+
+.bg-tarkov {
+  background-image:
+    radial-gradient(circle at 72% 18%, rgba(183,255,122,.5), transparent 22%),
+    radial-gradient(circle at 24% 70%, rgba(80,200,120,.22), transparent 30%),
+    linear-gradient(125deg, #050d07 0%, #0d2515 42%, #0a1410 100%);
+}
+.bg-warframe {
+  background-image:
+    radial-gradient(circle at 72% 18%, rgba(122,215,255,.5), transparent 22%),
+    radial-gradient(circle at 24% 70%, rgba(151,91,255,.22), transparent 30%),
+    linear-gradient(125deg, #020814 0%, #071c31 42%, #101329 100%);
+}
+.bg-eve {
+  background-image:
+    radial-gradient(circle at 64% 26%, rgba(255,179,71,.55), transparent 16%),
+    radial-gradient(circle at 38% 58%, rgba(70,119,255,.26), transparent 28%),
+    radial-gradient(circle at 80% 82%, rgba(255,95,65,.18), transparent 22%),
+    linear-gradient(125deg, #03050a 0%, #111827 35%, #241404 100%);
+}
+.bg-generic {
+  background-image:
+    radial-gradient(circle at 68% 22%, rgba(183,167,255,.18), transparent 30%),
+    linear-gradient(135deg, #070913 0%, #181229 60%, #050608 100%);
+}
+
+/* subtle accent grid like on item-details game-page */
+.search-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -9;
+  pointer-events: none;
+  opacity: .14;
+  background-image:
+    linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 50% 22%, black, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 22%, black, transparent 72%);
+}
+
 .header { margin-bottom: 12px; }
 
 .title {

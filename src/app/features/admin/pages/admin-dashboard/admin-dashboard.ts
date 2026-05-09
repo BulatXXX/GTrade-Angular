@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { CatalogStats, AdminJob } from '../../../../core/admin/admin.types';
+import { jobLabel } from '../../../../core/admin/admin-job-label';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 type DashboardState = {
@@ -29,6 +30,7 @@ export class AdminDashboardPage {
   private destroyRef = inject(DestroyRef);
   private stateSubject = new BehaviorSubject<DashboardState>(initial);
   state$ = this.stateSubject.asObservable();
+  jobLabel = jobLabel;
 
   constructor() {
     this.load();

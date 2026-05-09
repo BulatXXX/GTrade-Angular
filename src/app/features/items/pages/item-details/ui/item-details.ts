@@ -137,6 +137,65 @@ export class ItemDetailsPage {
     return { text: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`, up: pct >= 0 };
   }
 
+  yLabels(item: ItemDetails): Array<{ text: string; pos: number }> {
+    const r = this.chartRange(item);
+    if (!r) return [];
+    const pad = (r.max - r.min) * 0.1 || r.max * 0.05 || 1;
+    const lo = r.min - pad;
+    const hi = r.max + pad;
+    return [
+      { text: this.formatPrice(hi, r.currency),            pos: 8  },
+      { text: this.formatPrice((hi + lo) / 2, r.currency), pos: 44 },
+      { text: this.formatPrice(lo, r.currency),            pos: 80 },
+    ];
+  }
+
+  private chartRange(item: ItemDetails): { min: number; max: number; currency?: string } | null {
+    const h = item.priceHistory;
+    if (h && h.length >= 2) {
+      const values = h.map(p => p.value);
+      return { min: Math.min(...values), max: Math.max(...values), currency: h[0]?.currency };
+    }
+    const values = this.baseValues(item.price);
+    if (!values.length) return null;
+    const min = Math.max(0, Math.min(...values));
+    const max = Math.max(...values, min + 1);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return null;
+    return { min, max, currency: item.price?.currency };
+  }
+
+  endpointBadges(item: ItemDetails): { first?: { x: number; y: number; price: string; date: string }; last?: { x: number; y: number; price: string; date: string } } {
+    const h = item.priceHistory;
+    if (!h || h.length < 2) return {};
+    const points = this.chartPoints(item, 'trend');
+    if (points.length < 2) return {};
+    const cur = h[0]?.currency || '';
+    return {
+      first: {
+        x: points[0].x,
+        y: points[0].y,
+        price: this.formatPrice(h[0].value, cur),
+        date: this.shortDate(h[0].collected_on),
+      },
+      last: {
+        x: points[points.length - 1].x,
+        y: points[points.length - 1].y,
+        price: this.formatPrice(h[h.length - 1].value, cur),
+        date: this.shortDate(h[h.length - 1].collected_on),
+      },
+    };
+  }
+
+  private formatPrice(value: number, currency?: string): string {
+    if (!Number.isFinite(value)) return '—';
+    const abs = Math.abs(value);
+    const formatted = new Intl.NumberFormat('en-US', {
+      notation: abs >= 10000 ? 'compact' : 'standard',
+      maximumFractionDigits: abs >= 100 ? 0 : 2,
+    }).format(value);
+    return currency ? `${formatted} ${currency}` : formatted;
+  }
+
   bars(item: ItemDetails): Array<{ x: number; y: number; h: number; up: boolean }> {
     const points = this.chartPoints(item, 'bars');
     return points.map((p, i) => ({
@@ -177,15 +236,18 @@ export class ItemDetailsPage {
     const price = item.price;
     const seed = hashString(JSON.stringify({ id: item.externalId, game: item.game, pricing: price?.pricing, analytics: price?.analytics, kind }));
     const values = this.baseValues(price);
-    const min = Math.max(1, Math.min(...values));
+    const min = Math.max(0, Math.min(...values));
     const max = Math.max(...values, min + 1);
+    const pad = (max - min) * 0.1 || max * 0.05 || 1;
+    const lo = min - pad;
+    const hi = max + pad;
     return Array.from({ length: 18 }, (_, i) => {
       const wave = Math.sin((seed % 19 + i) / 2.4) * 0.18 + Math.cos((seed % 31 + i) / 3.7) * 0.11;
       const noise = ((hashString(`${seed}:${kind}:${i}`) % 100) / 100 - 0.5) * 0.22;
       const anchor = values[i % values.length] || max;
       const raw = kind === 'bars' ? anchor * (0.45 + Math.abs(wave) + Math.abs(noise)) : anchor * (1 + wave + noise);
-      const y = 92 - ((raw - min) / (max - min || 1)) * 72;
-      return { x: 4 + i * 5.2, y: clamp(y, 10, 88) };
+      const y = 8 + (1 - (raw - lo) / (hi - lo || 1)) * 72;
+      return { x: 4 + i * 5.2, y: clamp(y, 8, 80), value: raw };
     });
   }
 

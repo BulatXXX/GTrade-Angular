@@ -226,6 +226,17 @@
 .sk-price { height: 18px; width: clamp(160px, 45%, 340px); margin-top: 12px; }
 .sk-btn   { height: 38px; width: 160px; margin-top: 14px; border-radius: 999px; }
 
+/* Skeletons mirroring loaded item-details layout */
+.sk-icon-fill { width: 100%; height: 100%; border-radius: 14px; }
+.sk-eyebrow { height: 12px; width: clamp(180px, 40%, 260px); border-radius: 6px; margin-bottom: 10px; }
+.sk-desc-line { height: 14px; width: 92%; border-radius: 999px; margin-top: 14px; }
+.sk-desc-line--short { width: 64%; margin-top: 10px; }
+.sk-chart-label { height: 12px; width: 96px; border-radius: 6px; }
+.sk-chart-meta  { height: 12px; width: 64px; border-radius: 6px; }
+.sk-chart-area  { height: 152px; width: 100%; border-radius: 12px; margin-top: 12px; }
+.sk-stat-label  { height: 11px; width: 60%; border-radius: 6px; }
+.sk-stat-value  { height: 18px; width: 75%; border-radius: 6px; margin-top: 8px; }
+
 .desc-skel { margin-top: 16px; }
 .sk-line { height: 14px; border-radius: 999px; margin-top: 10px; }
 .w-90 { width: 90%; }
@@ -357,7 +368,12 @@
   z-index: -1;
   background: linear-gradient(90deg, rgba(8,10,12,.82), rgba(8,10,12,.55)), radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--game-accent) 18%, transparent), transparent 36%);
 }
-.theme-tarkov::before { background-image: url('/assets/bg2.jpg'); }
+.theme-tarkov::before {
+  background-image:
+    radial-gradient(circle at 70% 20%, rgba(183,255,122,.32), transparent 28%),
+    radial-gradient(circle at 28% 72%, rgba(75,160,80,.18), transparent 30%),
+    linear-gradient(125deg, #06140a 0%, #0a2418 48%, #0a1410 100%);
+}
 .theme-warframe::before { background-image: radial-gradient(circle at 60% 20%, rgba(122,215,255,.35), transparent 24%), linear-gradient(135deg, #06121f, #17182c 48%, #05070c); }
 .theme-eve::before { background-image: radial-gradient(circle at 68% 34%, rgba(255,179,71,.32), transparent 18%), radial-gradient(circle at 30% 72%, rgba(71,135,255,.18), transparent 24%), linear-gradient(135deg, #080b12, #251708 56%, #050608); }
 .theme-generic::before { background-image: linear-gradient(135deg, #0d1018, #181229); }
@@ -389,8 +405,84 @@
 /* ── Chart layout ── */
 .chart-wrap { position: relative; margin-top: 10px; }
 
+.chart-area {
+  position: relative;
+  width: 100%;
+  height: 152px;
+}
+.chart-area > .chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .chart { width: 100%; height: 152px; overflow: visible; display: block; }
 .bars  { height: 152px; }
+
+/* Y-axis price ticks (overlay inside chart-area) */
+.chart-y-axis {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.y-label {
+  position: absolute;
+  left: 6px;
+  transform: translateY(-50%);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.72;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Endpoint price + date badges */
+.point-badge {
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid color-mix(in srgb, var(--game-accent) 26%, rgba(255,255,255,0.1));
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+.point-badge b {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--game-accent);
+  letter-spacing: 0.3px;
+}
+.point-badge em {
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.point-badge--first {
+  transform: translate(-50%, calc(100% + 8px));
+  opacity: 0.65;
+}
+.point-badge--last {
+  transform: translate(-50%, calc(-100% - 10px));
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--game-accent) 22%, rgba(0,0,0,0.7)),
+    rgba(0, 0, 0, 0.78));
+  border-color: color-mix(in srgb, var(--game-accent) 50%, rgba(255,255,255,0.16));
+}
 
 /* Gradient stops – colors via CSS var so they react to game theme */
 .grad-top { stop-color: var(--game-accent); stop-opacity: 0.38; }
@@ -423,6 +515,34 @@
 }
 .dot-last {
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--game-accent) 90%, transparent));
+}
+
+/* Refresh state — only price + charts pulse during PvP/PvE switch */
+.is-refreshing {
+  position: relative;
+  animation: refreshPulse 1.4s ease-in-out infinite;
+}
+.is-refreshing::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--game-accent) 14%, transparent),
+    transparent);
+  opacity: 0;
+  animation: refreshSweep 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes refreshPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.78; }
+}
+@keyframes refreshSweep {
+  0%   { opacity: 0; transform: translateX(-30%); }
+  50%  { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(30%); }
 }
 
 /* Bars */
@@ -542,8 +662,9 @@
 }
 .game-page.theme-tarkov .page-bg::before {
   background-image:
-    linear-gradient(135deg, rgba(24,31,20,.3), rgba(0,0,0,.15)),
-    url('/assets/bg2.jpg');
+    radial-gradient(circle at 72% 18%, rgba(183,255,122,.5), transparent 22%),
+    radial-gradient(circle at 24% 70%, rgba(80,200,120,.22), transparent 30%),
+    linear-gradient(125deg, #050d07 0%, #0d2515 42%, #0a1410 100%);
 }
 .game-page.theme-warframe .page-bg::before {
   background-image:
