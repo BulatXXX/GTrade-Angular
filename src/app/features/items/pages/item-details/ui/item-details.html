@@ -24,21 +24,73 @@
         @if (s.item.description) { <p class="desc">{{ s.item.description }}</p> }
 
         <div class="analytics-grid">
+
+          <!-- Price trend chart -->
           <article class="chart-card chart-card--wide">
-            <div class="chart-head"><span>Price trend</span><b>{{ s.item.price?.market_kind || 'market' }}</b></div>
+            <div class="chart-head">
+              <span>Price trend</span>
+              <div class="chart-head-right">
+                @let change = priceChange(s.item);
+                @if (change) {
+                  <span class="change-badge" [class.change-up]="change.up" [class.change-dn]="!change.up">{{ change.text }}</span>
+                }
+                <b>{{ s.item.price?.market_kind || 'market' }}</b>
+              </div>
+            </div>
+
             @let trend = chartPoints(s.item, 'trend');
-            <svg class="chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Generated price trend chart">
-              <path class="chart-area" [attr.d]="areaPath(trend)"></path>
-              <polyline class="chart-line" [attr.points]="sparkline(trend)"></polyline>
+            <div class="chart-wrap">
+              <svg class="chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Price trend chart">
+                <defs>
+                  <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" class="grad-top"/>
+                    <stop offset="85%" class="grad-bot"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid -->
+                <line class="grid-line" x1="0" y1="28" x2="100" y2="28"/>
+                <line class="grid-line" x1="0" y1="54" x2="100" y2="54"/>
+                <line class="grid-line" x1="0" y1="80" x2="100" y2="80"/>
+                <!-- Area -->
+                <path class="chart-area-grad" [attr.d]="areaPath(trend)" fill="url(#priceGrad)"/>
+                <!-- Smooth line -->
+                <path class="chart-line-smooth" [attr.d]="smoothPath(trend)"/>
+                <!-- Endpoint dots -->
+                @if (trend.length >= 2) {
+                  <circle class="dot-end" [attr.cx]="trend[0].x" [attr.cy]="trend[0].y" r="1.6"/>
+                  <circle class="dot-end dot-last" [attr.cx]="trend[trend.length - 1].x" [attr.cy]="trend[trend.length - 1].y" r="2.4"/>
+                }
+              </svg>
+              <!-- X-axis date labels -->
+              @let xlabels = xLabels(s.item);
+              @if (xlabels.length) {
+                <div class="chart-x-axis">
+                  @for (lbl of xlabels; track lbl.pos) {
+                    <span class="x-label" [style.left.%]="lbl.pos">{{ lbl.text }}</span>
+                  }
+                </div>
+              } @else {
+                <div class="chart-x-axis chart-x-axis--synthetic">
+                  <span class="x-label-hint">synthetic preview</span>
+                </div>
+              }
+            </div>
+          </article>
+
+          <!-- Daily price bars chart -->
+          <article class="chart-card">
+            <div class="chart-head">
+              <span>{{ hasRealHistory(s.item) ? 'Daily prices' : 'Liquidity' }}</span>
+              <b>{{ s.item.price?.analytics?.sample_size ?? '—' }}</b>
+            </div>
+            <svg class="chart bars" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Daily price bars">
+              @for (bar of bars(s.item); track bar.x) {
+                <rect class="bar" [class.bar-up]="bar.up" [class.bar-dn]="!bar.up"
+                  [attr.x]="bar.x" [attr.y]="bar.y" width="3.2" [attr.height]="bar.h" rx="1.2"/>
+              }
             </svg>
           </article>
 
-          <article class="chart-card">
-            <div class="chart-head"><span>Liquidity</span><b>{{ s.item.price?.analytics?.sample_size ?? 'synthetic' }}</b></div>
-            <svg class="chart bars" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Generated liquidity chart">
-              @for (bar of bars(s.item); track bar.x) { <rect class="bar" [attr.x]="bar.x" [attr.y]="bar.y" width="2.8" [attr.height]="bar.h" rx="1"></rect> }
-            </svg>
-          </article>
         </div>
 
         <div class="stats game-stats">
