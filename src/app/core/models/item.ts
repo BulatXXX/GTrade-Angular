@@ -51,11 +51,22 @@ export type PriceSnapshot = {
   } | null;
 };
 
+export type PriceHistoryEntry = {
+  item_id: string;
+  source: string;
+  game_mode: string;
+  value: number;
+  currency: string;
+  collected_on: string;
+  collected_at: string;
+};
+
 export type ItemDetails = ItemPreview & {
   description: string | null;
   image512pxLink: string | null;
   price?: PriceSnapshot | null;
   topPrice?: number | null;
+  priceHistory?: PriceHistoryEntry[];
 };
 
 export type TrackedItem = {

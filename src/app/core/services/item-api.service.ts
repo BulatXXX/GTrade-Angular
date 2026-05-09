@@ -2,12 +2,13 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {catchError, forkJoin, map, Observable, of, switchMap} from 'rxjs';
 import {API} from '../api/api.config';
-import {CatalogItem, GameCode, GameMode, ItemDetails, ItemPreview, PriceSnapshot} from '../models/item';
+import {CatalogItem, GameCode, GameMode, ItemDetails, ItemPreview, PriceHistoryEntry, PriceSnapshot} from '../models/item';
 
 type ListItemsResponse = { items: CatalogItem[]; limit: number; offset: number };
 type ItemResponse = { item: CatalogItem };
 type PriceResponse = { price: PriceSnapshot };
 type TopPriceResponse = { value?: number | null; currency?: string; fetched_at?: string };
+type PriceHistoryResponse = { item_id: string; game_mode: string; history: PriceHistoryEntry[] };
 
 function asPreview(item: CatalogItem): ItemPreview {
   return {
@@ -60,6 +61,10 @@ export class ItemApiService {
           .set('game_mode', params.gameMode ?? 'regular');
         const externalId = item.external_id || item.id;
 
+        const historyParams = new HttpParams()
+          .set('game_mode', params.gameMode ?? 'regular')
+          .set('limit', 60);
+
         return forkJoin({
           price: this.http.get<PriceResponse>(`${API.market}/items/${encodeURIComponent(externalId)}/prices`, { params: marketParams }).pipe(
             map(res => res.price),
@@ -69,13 +74,18 @@ export class ItemApiService {
             map(res => res.value ?? null),
             catchError(() => of(null))
           ),
+          history: this.http.get<PriceHistoryResponse>(`${API.items}/${encodeURIComponent(item.id)}/prices/history`, { params: historyParams }).pipe(
+            map(res => res.history ?? []),
+            catchError(() => of([] as PriceHistoryEntry[]))
+          ),
         }).pipe(
-          map(({price, top}) => ({
+          map(({price, top, history}) => ({
             ...preview,
             description: preview.description ?? null,
             image512pxLink: preview.iconLink,
             price,
             topPrice: top,
+            priceHistory: history,
           }))
         );
       })

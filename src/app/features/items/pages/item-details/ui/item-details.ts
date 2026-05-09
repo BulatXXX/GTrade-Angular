@@ -5,11 +5,13 @@ import {map} from 'rxjs/operators';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 import {ItemDetailsViewModel} from '../item-details-view-model';
-import {ItemDetails, PriceSnapshot} from '../../../../../core/models/item';
+import {ItemDetails, PriceHistoryEntry, PriceSnapshot} from '../../../../../core/models/item';
 
-type ChartPoint = { x: number; y: number };
+type ChartPoint = { x: number; y: number; value?: number; date?: string };
 type Metric = { label: string; value: string | number; hint: string };
 type GameTheme = { key: string; label: string; className: string; accent: string };
+type AxisLabel = { text: string; pos: number };
+type PriceChange = { text: string; up: boolean };
 
 @Component({
   standalone: true,
@@ -81,7 +83,97 @@ export class ItemDetailsPage {
     ];
   }
 
-  chartPoints(item: ItemDetails, kind: 'trend' | 'volume' = 'trend'): ChartPoint[] {
+  chartPoints(item: ItemDetails, kind: 'trend' | 'bars' = 'trend'): ChartPoint[] {
+    const history = item.priceHistory;
+    if (history && history.length >= 2) {
+      return this.historyToPoints(history);
+    }
+    return this.syntheticPoints(item, kind);
+  }
+
+  smoothPath(points: ChartPoint[]): string {
+    if (points.length < 2) return '';
+    let d = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(points.length - 1, i + 2)];
+      const t = 0.22;
+      const cp1x = p1.x + (p2.x - p0.x) * t;
+      const cp1y = p1.y + (p2.y - p0.y) * t;
+      const cp2x = p2.x - (p3.x - p1.x) * t;
+      const cp2y = p2.y - (p3.y - p1.y) * t;
+      d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+    return d;
+  }
+
+  areaPath(points: ChartPoint[]): string {
+    if (!points.length) return '';
+    const line = this.smoothPath(points);
+    return `${line} L ${points[points.length - 1].x.toFixed(1)},100 L ${points[0].x.toFixed(1)},100 Z`;
+  }
+
+  xLabels(item: ItemDetails): AxisLabel[] {
+    const h = item.priceHistory;
+    if (!h || h.length < 2) return [];
+    const n = h.length;
+    const count = Math.min(5, n);
+    const step = (n - 1) / (count - 1);
+    return Array.from({ length: count }, (_, i) => {
+      const idx = Math.round(i * step);
+      return { text: this.shortDate(h[idx].collected_on), pos: (idx / (n - 1)) * 100 };
+    });
+  }
+
+  priceChange(item: ItemDetails): PriceChange | null {
+    const h = item.priceHistory;
+    if (!h || h.length < 2) return null;
+    const first = h[0].value;
+    const last = h[h.length - 1].value;
+    if (!first) return null;
+    const pct = ((last - first) / first) * 100;
+    return { text: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`, up: pct >= 0 };
+  }
+
+  bars(item: ItemDetails): Array<{ x: number; y: number; h: number; up: boolean }> {
+    const points = this.chartPoints(item, 'bars');
+    return points.map((p, i) => ({
+      x: 7 + i * (86 / Math.max(points.length - 1, 1)),
+      y: p.y,
+      h: 92 - p.y,
+      up: i === 0 ? true : p.value !== undefined && points[i - 1].value !== undefined
+        ? (p.value! >= points[i - 1].value!)
+        : true,
+    }));
+  }
+
+  sparkline(points: ChartPoint[]): string {
+    return points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  }
+
+  hasRealHistory(item: ItemDetails): boolean {
+    return !!(item.priceHistory && item.priceHistory.length >= 2);
+  }
+
+  private historyToPoints(history: PriceHistoryEntry[]): ChartPoint[] {
+    const values = history.map(h => h.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const pad = (max - min) * 0.1 || max * 0.05 || 1;
+    const lo = min - pad;
+    const hi = max + pad;
+    const n = history.length;
+    return history.map((h, i) => ({
+      x: 4 + (i / Math.max(n - 1, 1)) * 92,
+      y: clamp(8 + (1 - (h.value - lo) / (hi - lo)) * 72, 8, 80),
+      value: h.value,
+      date: h.collected_on,
+    }));
+  }
+
+  private syntheticPoints(item: ItemDetails, kind: 'trend' | 'bars'): ChartPoint[] {
     const price = item.price;
     const seed = hashString(JSON.stringify({ id: item.externalId, game: item.game, pricing: price?.pricing, analytics: price?.analytics, kind }));
     const values = this.baseValues(price);
@@ -91,23 +183,10 @@ export class ItemDetailsPage {
       const wave = Math.sin((seed % 19 + i) / 2.4) * 0.18 + Math.cos((seed % 31 + i) / 3.7) * 0.11;
       const noise = ((hashString(`${seed}:${kind}:${i}`) % 100) / 100 - 0.5) * 0.22;
       const anchor = values[i % values.length] || max;
-      const raw = kind === 'volume' ? anchor * (0.45 + Math.abs(wave) + Math.abs(noise)) : anchor * (1 + wave + noise);
+      const raw = kind === 'bars' ? anchor * (0.45 + Math.abs(wave) + Math.abs(noise)) : anchor * (1 + wave + noise);
       const y = 92 - ((raw - min) / (max - min || 1)) * 72;
-      return { x: 6 + i * 5.2, y: clamp(y, 10, 92) };
+      return { x: 4 + i * 5.2, y: clamp(y, 10, 88) };
     });
-  }
-
-  sparkline(points: ChartPoint[]): string {
-    return points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  }
-
-  areaPath(points: ChartPoint[]): string {
-    if (!points.length) return '';
-    return `M ${this.sparkline(points)} L ${points.at(-1)!.x.toFixed(1)},96 L ${points[0].x.toFixed(1)},96 Z`;
-  }
-
-  bars(item: ItemDetails): Array<{ x: number; y: number; h: number }> {
-    return this.chartPoints(item, 'volume').map((p, i) => ({ x: 7 + i * 5.2, y: p.y, h: 96 - p.y }));
   }
 
   private metric(label: string, value?: number | string | null, currency?: string): Metric {
@@ -121,6 +200,11 @@ export class ItemDetailsPage {
     const values = [p?.current, p?.top_sell, p?.top_buy, p?.base_price, p?.adjusted_price, p?.spread, a?.low, a?.median, a?.high, a?.sample_size]
       .filter((v): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0);
     return values.length ? values : [24, 31, 28, 39, 35, 44];
+  }
+
+  private shortDate(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   onImageError(event: Event) {

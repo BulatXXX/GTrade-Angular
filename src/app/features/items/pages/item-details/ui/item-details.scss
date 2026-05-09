@@ -386,10 +386,97 @@
 }
 .chart-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .7px; opacity: .82; }
 .chart-head b { color: var(--game-accent); font-weight: 700; }
-.chart { width: 100%; height: 162px; margin-top: 10px; overflow: visible; }
-.chart-area { fill: color-mix(in srgb, var(--game-accent) 22%, transparent); opacity: .7; }
-.chart-line { fill: none; stroke: var(--game-accent); stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 7px color-mix(in srgb, var(--game-accent) 60%, transparent)); }
-.bar { fill: color-mix(in srgb, var(--game-accent) 68%, white 8%); opacity: .78; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--game-accent) 36%, transparent)); }
+/* ── Chart layout ── */
+.chart-wrap { position: relative; margin-top: 10px; }
+
+.chart { width: 100%; height: 152px; overflow: visible; display: block; }
+.bars  { height: 152px; }
+
+/* Gradient stops – colors via CSS var so they react to game theme */
+.grad-top { stop-color: var(--game-accent); stop-opacity: 0.38; }
+.grad-bot  { stop-color: var(--game-accent); stop-opacity: 0.02; }
+
+/* Grid lines */
+.grid-line {
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 0.6;
+  stroke-dasharray: 3 4;
+}
+
+/* Area fill */
+.chart-area-grad { opacity: 0.9; }
+
+/* Smooth bezier line */
+.chart-line-smooth {
+  fill: none;
+  stroke: var(--game-accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--game-accent) 70%, transparent));
+}
+
+/* Endpoint dots */
+.dot-end {
+  fill: var(--game-accent);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--game-accent) 80%, transparent));
+}
+.dot-last {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--game-accent) 90%, transparent));
+}
+
+/* Bars */
+.bar {
+  fill: color-mix(in srgb, var(--game-accent) 55%, rgba(255,255,255,.12));
+  opacity: .82;
+}
+.bar-up { fill: color-mix(in srgb, var(--game-accent) 72%, #4fffb0 14%); }
+.bar-dn { fill: color-mix(in srgb, #ff5f5f 60%, var(--game-accent) 20%); opacity: .72; }
+
+/* Chart head right slot */
+.chart-head-right { display: flex; align-items: center; gap: 8px; }
+
+/* Price change badge */
+.change-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.change-up {
+  color: #7effc0;
+  background: rgba(78, 255, 152, 0.12);
+  border-color: rgba(78, 255, 152, 0.28);
+}
+.change-dn {
+  color: #ff8c8c;
+  background: rgba(255, 80, 80, 0.12);
+  border-color: rgba(255, 80, 80, 0.28);
+}
+
+/* X-axis date labels */
+.chart-x-axis {
+  position: relative;
+  height: 18px;
+  margin-top: 4px;
+}
+.x-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-family: var(--font-body), system-ui;
+  opacity: 0.52;
+  white-space: nowrap;
+  letter-spacing: .3px;
+}
+.chart-x-axis--synthetic .x-label-hint {
+  font-size: 10px;
+  font-style: italic;
+  opacity: 0.32;
+  letter-spacing: .3px;
+}
 .game-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .game-stats .stat { border-color: color-mix(in srgb, var(--game-accent) 18%, rgba(255,255,255,.1)); background: rgba(0,0,0,.16); }
 .stat em { display: block; margin-top: 4px; font-size: 11px; font-style: normal; opacity: .56; text-transform: uppercase; letter-spacing: .45px; }
