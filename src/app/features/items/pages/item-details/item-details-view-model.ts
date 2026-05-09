@@ -29,7 +29,7 @@ export class ItemDetailsViewModel {
       switchMap(({ id, mode }) => {
         if (!id) return of({ ...this.snapshot, status: 'idle' as const, item: undefined, tracked: false, priceLoading: false });
         const prev = this.snapshot;
-        const sameItemReload = prev.status === 'ready' && prev.id === id && !!prev.item;
+        const sameItemReload = prev.status === 'ready' && !!prev.item && prev.item.id === id;
         const startState: DetailsUiState = sameItemReload
           ? { ...prev, id, mode, priceLoading: true, errorMessage: undefined }
           : { ...prev, id, mode, status: 'loading', item: undefined, tracked: false, priceLoading: false, errorMessage: undefined };

@@ -1,0 +1,81 @@
+<div class="page">
+  <header class="header">
+    <a class="back-btn" routerLink="/profile"><span class="back-ico">←</span><span>{{ 'common.profile' | t | async }}</span></a>
+    <h1 class="title">{{ 'settings.title' | t | async }}</h1>
+    <p class="subtitle muted">{{ 'settings.subtitle' | t | async }}</p>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div class="row__label">
+        <div class="row__title">{{ 'settings.appLanguage' | t | async }}</div>
+        <div class="row__hint muted">{{ 'settings.appLanguage.hint' | t | async }}</div>
+      </div>
+      <div class="segmented" role="group" [attr.aria-label]="('settings.appLanguage' | t | async)">
+        <button type="button" class="seg-btn" [class.active]="appLanguage() === 'en'" (click)="setAppLanguage('en')">EN</button>
+        <button type="button" class="seg-btn" [class.active]="appLanguage() === 'ru'" (click)="setAppLanguage('ru')">RU</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row__label">
+        <div class="row__title">{{ 'settings.searchLanguage' | t | async }}</div>
+        <div class="row__hint muted">{{ 'settings.searchLanguage.hint' | t | async }}</div>
+      </div>
+      <div class="segmented" role="group" [attr.aria-label]="('settings.searchLanguage' | t | async)">
+        <button type="button" class="seg-btn" [class.active]="searchLanguage() === 'auto'" (click)="setSearchLanguage('auto')">{{ 'settings.searchLanguage.auto' | t | async }}</button>
+        <button type="button" class="seg-btn" [class.active]="searchLanguage() === 'en'" (click)="setSearchLanguage('en')">EN</button>
+        <button type="button" class="seg-btn" [class.active]="searchLanguage() === 'ru'" (click)="setSearchLanguage('ru')">RU</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row__label">
+        <div class="row__title">{{ 'settings.tarkovMode' | t | async }}</div>
+        <div class="row__hint muted">{{ 'settings.tarkovMode.hint' | t | async }}</div>
+      </div>
+      <div class="segmented" role="group" [attr.aria-label]="('settings.tarkovMode' | t | async)">
+        <button type="button" class="seg-btn" [class.active]="mode() === 'pvp'" (click)="setMode('pvp')">{{ 'settings.mode.pvp' | t | async }}</button>
+        <button type="button" class="seg-btn" [class.active]="mode() === 'pve'" (click)="setMode('pve')">{{ 'settings.mode.pve' | t | async }}</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">{{ 'settings.account' | t | async }}</h2>
+
+    @if (isAdmin()) {
+      <a class="action" routerLink="/admin">
+        <div class="action__main">
+          <div class="action__title">{{ 'settings.adminPanel' | t | async }}</div>
+          <div class="action__hint muted">{{ 'settings.adminPanel.hint' | t | async }}</div>
+        </div>
+        <div class="action__chev" aria-hidden="true">›</div>
+      </a>
+    }
+
+    <button class="action" type="button" (click)="clearWatchlist()" [disabled]="trackedCount() === 0">
+      <div class="action__main">
+        <div class="action__title">{{ 'settings.clearWatchlist' | t | async }}</div>
+        <div class="action__hint muted">{{ 'settings.clearWatchlist.hint' | t : { count: trackedCount() } | async }}</div>
+      </div>
+    </button>
+
+    @if (isAuthed()) {
+      <button class="action action--danger" type="button" (click)="logout()">
+        <div class="action__main">
+          <div class="action__title">{{ 'settings.logout' | t | async }}</div>
+          <div class="action__hint muted">{{ 'settings.logout.hint' | t | async }}</div>
+        </div>
+      </button>
+    } @else {
+      <a class="action" routerLink="/auth/login">
+        <div class="action__main">
+          <div class="action__title">{{ 'settings.signIn' | t | async }}</div>
+          <div class="action__hint muted">{{ 'settings.signIn.hint' | t | async }}</div>
+        </div>
+        <div class="action__chev" aria-hidden="true">›</div>
+      </a>
+    }
+  </section>
+</div>

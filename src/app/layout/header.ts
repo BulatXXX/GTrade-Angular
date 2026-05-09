@@ -45,14 +45,6 @@ import {AsyncPipe} from '@angular/common';
           </span>
         </a>
 
-        <!-- Admin pill (only for admin users) -->
-        @if (isAdmin()) {
-          <a class="pill pill--admin"
-             routerLink="/admin"
-             aria-label="Admin panel">
-            Admin
-          </a>
-        }
 
         <!-- Login icon (only for guest) -->
         @if (!isAuthed()) {

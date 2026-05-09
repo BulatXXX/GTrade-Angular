@@ -2,40 +2,54 @@
   <header class="header">
     <div class="header__row">
       <div class="header__left">
-        <h1 class="title">{{ isAuthed() ? userName() + '’s watchlist' : 'Profile' }}</h1>
-        <p class="subtitle muted">Manage tracked catalog items and switch pricing mode.</p>
+        <h1 class="title">
+          @if (isAuthed()) { {{ 'profile.titleAuth' | t : { name: userName() } | async }} }
+          @else { {{ 'profile.title' | t | async }} }
+        </h1>
+        <p class="subtitle muted">{{ 'profile.subtitle' | t | async }}</p>
       </div>
       <div class="header__actions">
-        @if (isAuthed()) { <button class="icon-btn" type="button" (click)="logout()" title="Logout">⎋</button> }
+        <a class="icon-btn" routerLink="/settings" [title]="('profile.actions.settings' | t | async)" [attr.aria-label]="('profile.actions.settings' | t | async)">⚙</a>
       </div>
     </div>
   </header>
 
-  <div class="mode-row" role="group" aria-label="Mode switch">
-    <div class="segmented"><button type="button" class="seg-btn" [class.active]="mode() === 'pvp'" (click)="setMode('pvp')">PvP</button><button type="button" class="seg-btn" [class.active]="mode() === 'pve'" (click)="setMode('pve')">PvE</button></div>
-    @if (!isEmpty()) { <button class="btn btn--ghost" type="button" (click)="clear()">Clear watchlist</button> }
-  </div>
+  @if (!isAuthed()) { <div class="sync-note muted">{{ 'profile.signInNote' | t | async }}</div> }
 
-  @if (!isAuthed()) { <div class="sync-note muted">Sign in to use protected backend routes. Local watchlist works offline.</div> }
-
-  @if (isEmpty()) {
-    <div class="empty muted">Your watchlist is empty</div>
-    <a class="btn" routerLink="/items">Go to search</a>
+  @if (isWatchlistEmpty()) {
+    <div class="empty muted">{{ 'profile.empty' | t | async }}</div>
+    <a class="btn" routerLink="/items">{{ 'profile.goToSearch' | t | async }}</a>
   } @else {
-    <div class="list">
-      @for (it of rows(); track it.id) {
-        <div class="row-wrap">
-          <a class="row" [routerLink]="['/items', it.id]">
-            <img class="icon" [src]="it.iconLink || placeholder" (error)="onImageError($event)" width="40" height="40" alt="" />
-            <div class="main">
-              @if (it.status === 'ready') { <div class="name">{{ it.name }}</div><div class="id muted">Price: {{ it.avg24hPrice ?? '—' }}</div> }
-              @else { <div class="skel skel-name"></div><div class="skel skel-price"></div> }
-            </div>
-            <div class="chev">›</div>
-          </a>
-          <button class="remove" type="button" (click)="remove(it.id)" title="Remove">×</button>
-        </div>
+    <div class="filters" role="group" aria-label="Game filter">
+      @for (g of games; track g.code) {
+        <button type="button" class="chip" [class.active]="gameFilter() === g.code" (click)="setGame(g.code)">{{ g.labelKey | t | async }}</button>
       }
     </div>
+
+    <div class="toolbar">
+      <div class="search">
+        <input class="input" type="text" [formControl]="query" [placeholder]="(('profile.searchPlaceholder' | t | async) ?? '')" autocomplete="off" />
+      </div>
+    </div>
+
+    @if (isFilteredEmpty()) {
+      <div class="empty muted">{{ 'profile.filtered.empty' | t | async }}</div>
+    } @else {
+      <div class="list">
+        @for (it of rows(); track it.id) {
+          <div class="row-wrap">
+            <a class="row" [routerLink]="['/items', it.id]">
+              <img class="icon" [src]="it.iconLink || placeholder" (error)="onImageError($event)" width="40" height="40" alt="" />
+              <div class="main">
+                @if (it.status === 'ready') { <div class="name">{{ it.name }}</div><div class="id muted">{{ it.game }} • {{ 'profile.row.price' | t | async }}: {{ it.avg24hPrice ?? '—' }}</div> }
+                @else { <div class="skel skel-name"></div><div class="skel skel-price"></div> }
+              </div>
+              <div class="chev">›</div>
+            </a>
+            <button class="remove" type="button" (click)="remove(it.id)" title="Remove">×</button>
+          </div>
+        }
+      </div>
+    }
   }
 </div>

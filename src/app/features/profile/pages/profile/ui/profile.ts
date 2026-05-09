@@ -1,35 +1,50 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, computed, DestroyRef, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {distinctUntilChanged, map} from 'rxjs';
-import {Mode, ProfileViewModel} from '../profile-view-model';
-import {SettingsService} from '../../../../../core/services/settings-service';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {GameFilter, ProfileViewModel} from '../profile-view-model';
 import {AuthService} from '../../../../../core/auth/auth.service';
 import {TrackedItemsService} from '../../../../../core/services/items-tracked';
+import {TPipe} from '../../../../../core/i18n/t.pipe';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, TPipe],
   templateUrl: './profile.html',
   styleUrls: ['./profile.scss'],
   providers: [ProfileViewModel],
 })
 export class Profile {
   private vm = inject(ProfileViewModel);
-  private settings = inject(SettingsService);
   private auth = inject(AuthService);
   private tracked = inject(TrackedItemsService);
+  private destroyRef = inject(DestroyRef);
+
   rows = toSignal(this.vm.rows$, { initialValue: [] });
-  isEmpty = computed(() => this.rows().length === 0);
-  mode = toSignal(this.settings.settings$.pipe(map(s => (s.mode as Mode) ?? 'pvp'), distinctUntilChanged()), { initialValue: 'pvp' as Mode });
+  trackedItems = toSignal(this.tracked.tracked$, { initialValue: [] });
+  isWatchlistEmpty = computed(() => this.trackedItems().length === 0);
+  isFilteredEmpty = computed(() => !this.isWatchlistEmpty() && this.rows().length === 0);
+  gameFilter = toSignal(this.vm.gameFilter$, { initialValue: 'all' as GameFilter });
+  query = new FormControl('', { nonNullable: true });
+
   private authState = toSignal(this.auth.state$, { initialValue: { status: 'guest' } as any });
   isAuthed = computed(() => this.authState()?.status === 'auth');
   userName = computed(() => (this.authState()?.status === 'auth' ? this.authState().user.name : 'Guest'));
-  setMode(mode: Mode) { this.settings.setMode(mode); }
+
+  games: Array<{ code: GameFilter; labelKey: string }> = [
+    { code: 'all', labelKey: 'profile.games.all' },
+    { code: 'tarkov', labelKey: 'profile.games.tarkov' },
+    { code: 'warframe', labelKey: 'profile.games.warframe' },
+    { code: 'eve', labelKey: 'profile.games.eve' },
+  ];
+
+  constructor() {
+    this.query.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(v => this.vm.setQuery(v));
+  }
+
+  setGame(g: GameFilter) { this.vm.setGameFilter(g); }
   remove(id: string) { this.tracked.remove(id); }
-  clear() { this.tracked.clear(); }
-  logout() { this.auth.logout(); }
   placeholder = 'assets/item-placeholder.svg';
 
   onImageError(event: Event) {

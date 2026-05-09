@@ -11,29 +11,40 @@
     <p class="subtitle muted">Search the local GTrade catalog. Use game filter first for cleaner results.</p>
   </header>
 
+  <button
+    type="button"
+    class="scroll-top"
+    [class.is-visible]="showScrollTop()"
+    (click)="scrollToTop()"
+    aria-label="Scroll to top">
+    <span class="scroll-top-arrow" aria-hidden="true">↑</span>
+  </button>
+
   @if (viewModel$ | async; as vm) {
-    <div class="filters" role="group" aria-label="Game filter">
-      @for (g of games; track g.code) {
-        <button type="button" class="chip" [class.active]="vm.game === g.code" (click)="setGame(g.code)">{{ g.label }}</button>
-      }
-    </div>
-
-    <div class="search-box">
-      <div class="search">
-        <input class="input" type="text" [formControl]="query" placeholder="Search: ruble, plex, prime, injector…" autocomplete="off" />
-
-        @if (history$ | async; as history) {
-          @if (isQueryEmpty && history.length > 0) {
-            <div class="history-popover"><div class="history">
-              <div class="history-head"><div class="history-title">Recently viewed</div><button class="history-clear" type="button" (click)="clearHistory()">Clear</button></div>
-              <div class="history-list">
-                @for (h of history; track h.id) {
-                  <a class="history-row" [routerLink]="['/items', h.id]"><img class="icon" [src]="h.iconLink || placeholder" (error)="onImageError($event)" width="32" height="32" alt="" /><div class="name">{{ h.name }}</div><div class="chev">›</div></a>
-                }
-              </div>
-            </div></div>
-          }
+    <div class="sticky-bar" [class.is-stuck]="isHeaderStuck()">
+      <div class="filters" role="group" aria-label="Game filter">
+        @for (g of games; track g.code) {
+          <button type="button" class="chip" [class.active]="vm.game === g.code" (click)="setGame(g.code)">{{ g.label }}</button>
         }
+      </div>
+
+      <div class="search-box">
+        <div class="search">
+          <input class="input" type="text" [formControl]="query" placeholder="Search: ruble, plex, prime, injector…" autocomplete="off" />
+
+          @if (history$ | async; as history) {
+            @if (isQueryEmpty && history.length > 0) {
+              <div class="history-popover"><div class="history">
+                <div class="history-head"><div class="history-title">Recently viewed</div><button class="history-clear" type="button" (click)="clearHistory()">Clear</button></div>
+                <div class="history-list">
+                  @for (h of history; track h.id) {
+                    <a class="history-row" [routerLink]="['/items', h.id]"><img class="icon" [src]="h.iconLink || placeholder" (error)="onImageError($event)" width="32" height="32" alt="" /><div class="name">{{ h.name }}</div><div class="chev">›</div></a>
+                  }
+                </div>
+              </div></div>
+            }
+          }
+        </div>
       </div>
     </div>
 
@@ -52,7 +63,26 @@
             <div class="chev" aria-hidden="true">›</div>
           </a>
         }
+        @if (vm.loadingMore) {
+          @for (_ of [1,2,3]; track _) {
+            <div class="row row-skel">
+              <div class="icon skel skel-icon"></div>
+              <div class="name skel skel-text"></div>
+              <div class="chev skel skel-chev"></div>
+            </div>
+          }
+        }
       </div>
+      @if (vm.hasMore) {
+        <div class="load-more">
+          <div #sentinel class="load-more-sentinel" aria-hidden="true"></div>
+          @if (!vm.loadingMore) {
+            <button type="button" class="load-more-btn" (click)="loadMore()">Load more</button>
+          }
+        </div>
+      } @else if (vm.items.length > 0) {
+        <div class="load-more-end muted">— end of list —</div>
+      }
     }
   }
 </div>

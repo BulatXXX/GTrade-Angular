@@ -92,10 +92,10 @@ export class ItemApiService {
     );
   }
 
-  getItemsByIdsForProfile(params: { ids: string[]; lang?: 'en' | 'ru'; gameMode?: GameMode }): Observable<Array<{ id: string; name: string; avg24hPrice: number | null; iconLink?: string | null }>> {
+  getItemsByIdsForProfile(params: { ids: string[]; lang?: 'en' | 'ru'; gameMode?: GameMode }): Observable<Array<{ id: string; name: string; game: GameCode | string; avg24hPrice: number | null; iconLink?: string | null }>> {
     if (!params.ids.length) return of([]);
     return forkJoin(params.ids.map(id => this.getItemById({ id, lang: params.lang, gameMode: params.gameMode }).pipe(catchError(() => of(null))))).pipe(
-      map(items => items.filter(Boolean).map((it: any) => ({ id: it.id, name: it.name, avg24hPrice: it.topPrice ?? it.price?.pricing?.current ?? null, iconLink: it.iconLink })))
+      map(items => items.filter(Boolean).map((it: any) => ({ id: it.id, name: it.name, game: it.game, avg24hPrice: it.topPrice ?? it.price?.pricing?.current ?? null, iconLink: it.iconLink })))
     );
   }
 }

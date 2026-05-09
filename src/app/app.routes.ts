@@ -10,6 +10,7 @@ export const routes: Routes = [
   { path: 'items', loadComponent: () => import('./features/items/pages/items-search/ui/items-search').then(m => m.ItemsSearch) },
   { path: 'items/:id', loadComponent: () => import('./features/items/pages/item-details/ui/item-details').then(m => m.ItemDetailsPage) },
   { path: 'profile', loadComponent: () => import('./features/profile/pages/profile/ui/profile').then(m => m.Profile) },
+  { path: 'settings', loadComponent: () => import('./features/settings/pages/settings/ui/settings').then(m => m.SettingsPage) },
   { path: 'auth/login', component: AuthLoginPage },
   { path: 'auth/register', component: AuthRegisterPage },
   { path: 'auth/password-reset', component: PasswordResetRequestPage },

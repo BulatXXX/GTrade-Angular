@@ -8,9 +8,22 @@ import {ItemsHistoryService} from '../../../../core/services/items-history';
 
 export type GameFilter = 'all' | GameCode;
 export type SearchStatus = 'idle' | 'loading' | 'ready' | 'error';
-export type SearchUiState = { query: string; game: GameFilter; status: SearchStatus; items: ItemPreview[]; errorMessage?: string };
+export type SearchUiState = {
+  query: string;
+  game: GameFilter;
+  status: SearchStatus;
+  items: ItemPreview[];
+  errorMessage?: string;
+  offset: number;
+  hasMore: boolean;
+  loadingMore: boolean;
+};
 
-const initialState: SearchUiState = { query: '', game: 'all', status: 'idle', items: [] };
+const PAGE_SIZE = 30;
+const initialState: SearchUiState = {
+  query: '', game: 'all', status: 'idle', items: [],
+  offset: 0, hasMore: false, loadingMore: false,
+};
 
 @Injectable({ providedIn: 'root' })
 export class ItemSearchViewModel {
@@ -29,12 +42,36 @@ export class ItemSearchViewModel {
       distinctUntilChanged((a, b) => a.q === b.q && a.game === b.game),
       switchMap(({ q, game }) => {
         const request$ = q.length >= 2
-          ? this.api.searchItems({ name: q, game, lang: 'en' })
-          : this.api.listItems({ game, lang: 'en', limit: 30 });
+          ? this.api.searchItems({ name: q, game, lang: 'en', limit: PAGE_SIZE, offset: 0 })
+          : this.api.listItems({ game, lang: 'en', limit: PAGE_SIZE, offset: 0 });
         return request$.pipe(
-          map(items => ({ ...this.getState, status: 'ready' as const, items, errorMessage: undefined })),
-          startWith({ ...this.getState, status: 'loading' as const, items: [], errorMessage: undefined }),
-          catchError(err => of({ ...this.getState, status: 'error' as const, items: [], errorMessage: String(err?.error?.error ?? err?.message ?? err) })),
+          map(items => ({
+            ...this.getState,
+            status: 'ready' as const,
+            items,
+            errorMessage: undefined,
+            offset: items.length,
+            hasMore: items.length === PAGE_SIZE,
+            loadingMore: false,
+          })),
+          startWith({
+            ...this.getState,
+            status: 'loading' as const,
+            items: [],
+            errorMessage: undefined,
+            offset: 0,
+            hasMore: false,
+            loadingMore: false,
+          }),
+          catchError(err => of({
+            ...this.getState,
+            status: 'error' as const,
+            items: [],
+            errorMessage: String(err?.error?.error ?? err?.message ?? err),
+            offset: 0,
+            hasMore: false,
+            loadingMore: false,
+          })),
         );
       }),
       takeUntilDestroyed(this.destroyRef),
@@ -44,5 +81,31 @@ export class ItemSearchViewModel {
   setQuery(query: string) { this.patch({ query }); }
   setGame(game: GameFilter) { this.patch({ game }); }
   clearHistory() { this.history.clear(); }
+
+  loadMore(): void {
+    const s = this.getState;
+    if (s.loadingMore || !s.hasMore || s.status !== 'ready') return;
+    const q = s.query.trim();
+    const game = s.game;
+    this.patch({ loadingMore: true });
+    const request$ = q.length >= 2
+      ? this.api.searchItems({ name: q, game, lang: 'en', limit: PAGE_SIZE, offset: s.offset })
+      : this.api.listItems({ game, lang: 'en', limit: PAGE_SIZE, offset: s.offset });
+    request$.pipe(
+      catchError(() => of([] as ItemPreview[])),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(more => {
+      const cur = this.getState;
+      if (cur.query.trim() !== q || cur.game !== game) return;
+      const items = [...cur.items, ...more];
+      this.patch({
+        items,
+        offset: items.length,
+        hasMore: more.length === PAGE_SIZE,
+        loadingMore: false,
+      });
+    });
+  }
+
   private patch(patch: Partial<SearchUiState>) { this.stateSubject.next({ ...this.getState, ...patch }); }
 }
