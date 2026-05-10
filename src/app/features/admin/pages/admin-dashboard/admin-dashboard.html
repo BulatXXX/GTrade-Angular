@@ -1,9 +1,9 @@
 @if (state$ | async; as s) {
   <div class="dash-page">
     <div class="dash-header">
-      <h1 class="dash-title">Dashboard</h1>
+      <h1 class="dash-title">{{ 'admin.dashboard.title' | t | async }}</h1>
       <button class="btn-refresh" (click)="load()" [disabled]="s.status === 'loading'">
-        Refresh
+        {{ 'admin.dashboard.refresh' | t | async }}
       </button>
     </div>
 
@@ -14,21 +14,21 @@
     <!-- Stats cards -->
     <div class="stats-grid">
       <div class="stat-card">
-        <span class="stat-label">Total Items</span>
+        <span class="stat-label">{{ 'admin.dashboard.totalItems' | t | async }}</span>
         <span class="stat-value">
           @if (s.status === 'loading') { <span class="skel skel--val"></span> }
           @else { {{ formatNum(s.stats?.total_items) }} }
         </span>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Active Items</span>
+        <span class="stat-label">{{ 'admin.dashboard.activeItems' | t | async }}</span>
         <span class="stat-value stat-value--accent">
           @if (s.status === 'loading') { <span class="skel skel--val"></span> }
           @else { {{ formatNum(s.stats?.active_items) }} }
         </span>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Price History Rows</span>
+        <span class="stat-label">{{ 'admin.dashboard.priceHistoryRows' | t | async }}</span>
         <span class="stat-value">
           @if (s.status === 'loading') { <span class="skel skel--val"></span> }
           @else { {{ formatNum(s.stats?.price_history_rows) }} }
@@ -40,17 +40,17 @@
     <div class="quick-actions">
       <a routerLink="/admin/catalog" class="quick-btn">
         <span class="quick-icon">⊞</span>
-        Manage Catalog
+        {{ 'admin.dashboard.manageCatalog' | t | async }}
       </a>
       <a routerLink="/admin/prices" class="quick-btn">
         <span class="quick-icon">↑</span>
-        Sync Prices
+        {{ 'admin.dashboard.syncPrices' | t | async }}
       </a>
     </div>
 
     <!-- Recent jobs -->
     <div class="jobs-section">
-      <h2 class="section-title">Recent Jobs</h2>
+      <h2 class="section-title">{{ 'admin.dashboard.recentJobs' | t | async }}</h2>
 
       @if (s.status === 'loading') {
         <div class="jobs-loading">
@@ -59,7 +59,7 @@
           }
         </div>
       } @else if (s.jobs.length === 0) {
-        <div class="jobs-empty">No jobs found.</div>
+        <div class="jobs-empty">{{ 'admin.dashboard.jobsEmpty' | t | async }}</div>
       } @else {
         <div class="jobs-list">
           @for (job of s.jobs; track job.id) {

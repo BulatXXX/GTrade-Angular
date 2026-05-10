@@ -61,7 +61,7 @@ export class AdminApiService {
 
   // --- Notifications ---
 
-  sendPriceAlerts(req: { user_id?: number }): Observable<AdminPriceAlertResult> {
+  sendPriceAlerts(req: { user_id?: number; force_send?: boolean }): Observable<AdminPriceAlertResult> {
     return this.http.post<AdminPriceAlertResult>(`${ADMIN_API.userAssets}/price-alerts/send`, req);
   }
 

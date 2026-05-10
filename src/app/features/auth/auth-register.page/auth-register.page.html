@@ -1,40 +1,40 @@
 <div class="auth">
   <div class="auth__card">
-    <div class="auth__badge">NEW PMC</div>
+    <div class="auth__badge">{{ 'auth.register.badge' | t | async }}</div>
 
-    <h1 class="auth__title">Register</h1>
-    <p class="auth__subtitle muted">Create an account to sync your list.</p>
+    <h1 class="auth__title">{{ 'auth.register.title' | t | async }}</h1>
+    <p class="auth__subtitle muted">{{ 'auth.register.subtitle' | t | async }}</p>
 
     <form class="auth__form" (ngSubmit)="submit()">
       <label class="field">
-        <span class="field__label">Name</span>
+        <span class="field__label">{{ 'auth.name' | t | async }}</span>
         <input class="input" type="text" autocomplete="nickname" [formControl]="name" placeholder="Singularity" />
         @if (name.touched && name.invalid) {
           <div class="field__error">
-            @if (name.errors?.['required']) { Name is required }
-            @else { Min 2 characters }
+            @if (name.errors?.['required']) { {{ 'auth.nameRequired' | t | async }} }
+            @else { {{ 'auth.nameMin' | t | async }} }
           </div>
         }
       </label>
 
       <label class="field">
-        <span class="field__label">Email</span>
+        <span class="field__label">{{ 'auth.email' | t | async }}</span>
         <input class="input" type="email" autocomplete="email" [formControl]="email" placeholder="you@example.com" />
         @if (email.touched && email.invalid) {
           <div class="field__error">
-            @if (email.errors?.['required']) { Email is required }
-            @else { Invalid email }
+            @if (email.errors?.['required']) { {{ 'auth.emailRequired' | t | async }} }
+            @else { {{ 'auth.emailInvalid' | t | async }} }
           </div>
         }
       </label>
 
       <label class="field">
-        <span class="field__label">Password</span>
+        <span class="field__label">{{ 'auth.password' | t | async }}</span>
         <input class="input" type="password" autocomplete="new-password" [formControl]="password" placeholder="••••••••" />
         @if (password.touched && password.invalid) {
           <div class="field__error">
-            @if (password.errors?.['required']) { Password is required }
-            @else { Min 6 characters }
+            @if (password.errors?.['required']) { {{ 'auth.passwordRequired' | t | async }} }
+            @else { {{ 'auth.passwordMin' | t | async }} }
           </div>
         }
       </label>
@@ -44,13 +44,13 @@
       }
 
       <button class="btn btn--primary" type="submit" [disabled]="loading()">
-        @if (loading()) { Creating… } @else { Create account }
+        @if (loading()) { {{ 'auth.register.submitLoading' | t | async }} } @else { {{ 'auth.register.submit' | t | async }} }
       </button>
 
       <div class="auth__links muted">
-        <a routerLink="/auth/login">Already have an account?</a>
+        <a routerLink="/auth/login">{{ 'auth.register.haveAccount' | t | async }}</a>
         <span class="dot">•</span>
-        <a routerLink="/items">Back to search</a>
+        <a routerLink="/items">{{ 'auth.backToSearch' | t | async }}</a>
       </div>
     </form>
   </div>

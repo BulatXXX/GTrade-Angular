@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { AdminPriceAlertResult, AdminMessageRequest } from '../../../../core/admin/admin.types';
 import { ProgressBarComponent } from '../../../../shared/ui/progress-bar/progress-bar';
+import { TPipe } from '../../../../core/i18n/t.pipe';
 
 // TODO(backend): convert to job-based for real progress
 
@@ -38,7 +39,7 @@ const initial: NotifState = {
 @Component({
   selector: 'app-admin-notifications',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ProgressBarComponent],
+  imports: [CommonModule, ReactiveFormsModule, ProgressBarComponent, TPipe],
   templateUrl: './admin-notifications.html',
   styleUrl: './admin-notifications.scss',
 })
@@ -71,9 +72,9 @@ export class AdminNotificationsPage implements OnInit {
 
   runAlerts(): void {
     const s = this.stateSubject.value;
-    const req: { user_id?: number } = s.alertTarget === 'user' && s.alertUserId
-      ? { user_id: parseInt(s.alertUserId, 10) }
-      : {};
+    const req: { user_id?: number; force_send: boolean } = s.alertTarget === 'user' && s.alertUserId
+      ? { user_id: parseInt(s.alertUserId, 10), force_send: true }
+      : { force_send: true };
 
     this.patch({ alertStatus: 'running', alertResult: undefined, alertError: undefined });
     this.api.sendPriceAlerts(req).pipe(

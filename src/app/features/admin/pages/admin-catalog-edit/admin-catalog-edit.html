@@ -4,7 +4,7 @@
     <!-- Sticky header -->
     <div class="edit-header">
       <div class="edit-header__left">
-        <a routerLink="/admin/catalog" class="back-link">← Catalog</a>
+        <a routerLink="/admin/catalog" class="back-link">{{ 'admin.edit.back' | t | async }}</a>
         @if (s.item) {
           <h1 class="edit-title">{{ s.item.name }}</h1>
         } @else {
@@ -14,14 +14,14 @@
       <div class="edit-header__actions">
         @if (s.item) {
           <a [href]="'/items/' + s.item.id" target="_blank" class="btn btn--ghost btn--sm">
-            Public page ↗
+            {{ 'admin.edit.publicPage' | t | async }}
           </a>
         }
         <button class="btn btn--danger btn--sm" [disabled]="s.status === 'loading' || s.status === 'saving'" (click)="deleteItem()">
-          Delete
+          {{ 'admin.edit.delete' | t | async }}
         </button>
         <button class="btn btn--accent" [disabled]="s.status === 'loading' || s.status === 'saving'" (click)="save()">
-          @if (s.status === 'saving') { Saving… } @else { Save }
+          @if (s.status === 'saving') { {{ 'admin.edit.saving' | t | async }} } @else { {{ 'admin.edit.save' | t | async }} }
         </button>
       </div>
     </div>
@@ -31,7 +31,7 @@
     }
 
     @if (s.saved) {
-      <div class="success-block">Saved successfully.</div>
+      <div class="success-block">{{ 'admin.edit.savedOk' | t | async }}</div>
     }
 
     @if (s.saveError) {
@@ -43,27 +43,27 @@
         <form [formGroup]="form" class="edit-form">
           <!-- Main fields -->
           <div class="form-section">
-            <h2 class="form-section__title">Item details</h2>
+            <h2 class="form-section__title">{{ 'admin.edit.section.details' | t | async }}</h2>
 
             <div class="form-row">
-              <label class="field-label">Name</label>
+              <label class="field-label">{{ 'admin.edit.field.name' | t | async }}</label>
               <input formControlName="name" class="field-input" />
             </div>
 
             <div class="form-row">
-              <label class="field-label">Description</label>
+              <label class="field-label">{{ 'admin.edit.field.description' | t | async }}</label>
               <textarea formControlName="description" class="field-input field-textarea" rows="4"></textarea>
             </div>
 
             <div class="form-row">
-              <label class="field-label">Image URL</label>
+              <label class="field-label">{{ 'admin.edit.field.imageUrl' | t | async }}</label>
               <input formControlName="image_url" class="field-input" />
             </div>
 
             <div class="form-row form-row--inline">
               <label class="toggle-label">
                 <input type="checkbox" formControlName="is_active" />
-                <span>Active</span>
+                <span>{{ 'admin.edit.active' | t | async }}</span>
               </label>
             </div>
           </div>
@@ -71,12 +71,12 @@
           <!-- Translations -->
           <div class="form-section">
             <div class="form-section__head">
-              <h2 class="form-section__title">Translations</h2>
-              <button type="button" class="btn btn--sm btn--secondary" (click)="addTranslation()">+ Add</button>
+              <h2 class="form-section__title">{{ 'admin.edit.section.translations' | t | async }}</h2>
+              <button type="button" class="btn btn--sm btn--secondary" (click)="addTranslation()">{{ 'admin.edit.add' | t | async }}</button>
             </div>
 
             @if (translations.length === 0) {
-              <p class="form-hint">No translations. Click "Add" to add one.</p>
+              <p class="form-hint">{{ 'admin.edit.translations.empty' | t | async }}</p>
             }
 
             @for (tg of translations.controls; track $index; let i = $index) {
@@ -85,8 +85,8 @@
                   <option value="en">EN</option>
                   <option value="ru">RU</option>
                 </select>
-                <input formControlName="name" class="field-input" placeholder="Translated name" />
-                <input formControlName="description" class="field-input" placeholder="Translated description (optional)" />
+                <input formControlName="name" class="field-input" [placeholder]="(('admin.edit.translation.namePh' | t | async) ?? '')" />
+                <input formControlName="description" class="field-input" [placeholder]="(('admin.edit.translation.descPh' | t | async) ?? '')" />
                 <button type="button" class="btn btn--sm btn--danger" (click)="removeTranslation(i)">✕</button>
               </div>
             }
@@ -96,7 +96,7 @@
         <!-- Preview card -->
         @if (s.item) {
           <div class="preview-panel">
-            <h2 class="preview-title">Preview</h2>
+            <h2 class="preview-title">{{ 'admin.edit.preview' | t | async }}</h2>
             <div class="preview-card">
               @if (form.value.image_url) {
                 <img [src]="form.value.image_url" [alt]="form.value.name || s.item.name" class="preview-img" />
@@ -109,7 +109,7 @@
                   <span class="preview-source">{{ s.item.source }}</span>
                   <span class="preview-game game-pill game-pill--{{ s.item.game }}">{{ s.item.game }}</span>
                   <span class="preview-active" [class.active]="form.value.is_active">
-                    {{ form.value.is_active ? 'active' : 'inactive' }}
+                    {{ (form.value.is_active ? 'admin.edit.activeBadge.active' : 'admin.edit.activeBadge.inactive') | t | async }}
                   </span>
                 </div>
                 @if (form.value.description) {

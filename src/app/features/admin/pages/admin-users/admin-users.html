@@ -1,54 +1,54 @@
 @if (state$ | async; as s) {
   <div class="users-page">
     <div class="page-header">
-      <h1 class="page-title">Users</h1>
+      <h1 class="page-title">{{ 'admin.users.title' | t | async }}</h1>
       <button class="btn btn--accent" (click)="sendAllAlerts()" [disabled]="s.alertStatus === 'running'">
-        Send price alerts to ALL
+        {{ 'admin.users.sendAll' | t | async }}
       </button>
     </div>
 
     <!-- Alert status -->
     @if (s.alertStatus === 'running') {
       <div class="alert-card">
-        <p class="alert-card__text">Sending price alerts to all users…</p>
-        <app-progress-bar [indeterminate]="true" [label]="'Checking all users'"></app-progress-bar>
+        <p class="alert-card__text">{{ 'admin.users.sendingAll' | t | async }}</p>
+        <app-progress-bar [indeterminate]="true" [label]="(('admin.users.checkingAll' | t | async) ?? '')"></app-progress-bar>
       </div>
     }
 
     @if (s.alertStatus === 'done' && s.alertResult) {
       <div class="result-card">
-        <h3 class="result-card__title">Price Alerts Sent</h3>
+        <h3 class="result-card__title">{{ 'admin.users.sentTitle' | t | async }}</h3>
         <div class="result-grid">
           <div class="result-stat">
-            <span class="result-stat__label">Users Checked</span>
+            <span class="result-stat__label">{{ 'admin.users.usersChecked' | t | async }}</span>
             <span class="result-stat__value">{{ formatNum(s.alertResult.users_checked) }}</span>
           </div>
           <div class="result-stat">
-            <span class="result-stat__label">Emails Sent</span>
+            <span class="result-stat__label">{{ 'admin.users.emailsSent' | t | async }}</span>
             <span class="result-stat__value result-stat__value--accent">{{ formatNum(s.alertResult.emails_sent) }}</span>
           </div>
           <div class="result-stat">
-            <span class="result-stat__label">Users with Diffs</span>
+            <span class="result-stat__label">{{ 'admin.users.usersWithDiffs' | t | async }}</span>
             <span class="result-stat__value">{{ formatNum(s.alertResult.users_with_diff) }}</span>
           </div>
           <div class="result-stat">
-            <span class="result-stat__label">Changes Found</span>
+            <span class="result-stat__label">{{ 'admin.users.changesFound' | t | async }}</span>
             <span class="result-stat__value">{{ formatNum(s.alertResult.changes_found) }}</span>
           </div>
         </div>
-        <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">Dismiss</button>
+        <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">{{ 'admin.users.dismiss' | t | async }}</button>
       </div>
     }
 
     @if (s.alertStatus === 'error') {
       <div class="error-card">
-        <span>Failed: {{ s.alertError }}</span>
-        <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">Dismiss</button>
+        <span>{{ 'admin.users.failed' | t : { error: s.alertError ?? '' } | async }}</span>
+        <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">{{ 'admin.users.dismiss' | t | async }}</button>
       </div>
     }
 
     <!-- Filter -->
-    <input [formControl]="filterCtrl" class="filter-input" placeholder="Filter by email…" />
+    <input [formControl]="filterCtrl" class="filter-input" [placeholder]="(('admin.users.filterPh' | t | async) ?? '')" />
 
     @if (s.status === 'error') {
       <div class="error-block">{{ s.error }}</div>
@@ -59,12 +59,12 @@
       <table class="users-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>Verified</th>
-            <th>Role</th>
-            <th>Joined</th>
-            <th>Actions</th>
+            <th>{{ 'admin.users.col.id' | t | async }}</th>
+            <th>{{ 'admin.users.col.email' | t | async }}</th>
+            <th>{{ 'admin.users.col.verified' | t | async }}</th>
+            <th>{{ 'admin.users.col.role' | t | async }}</th>
+            <th>{{ 'admin.users.col.joined' | t | async }}</th>
+            <th>{{ 'admin.users.col.actions' | t | async }}</th>
           </tr>
         </thead>
         <tbody>
@@ -83,7 +83,7 @@
                 <td class="cell-email">{{ user.email }}</td>
                 <td class="cell-verified">
                   <span class="verified-pill" [class.verified-pill--yes]="user.email_verified">
-                    {{ user.email_verified ? 'verified' : 'unverified' }}
+                    {{ (user.email_verified ? 'admin.users.verified' : 'admin.users.unverified') | t | async }}
                   </span>
                 </td>
                 <td class="cell-role">
@@ -94,7 +94,7 @@
                 </td>
                 <td class="cell-date">{{ formatDate(user.created_at) }}</td>
                 <td class="cell-actions">
-                  <button class="btn btn--sm btn--ghost" (click)="openMessageDrawer(user)">Message</button>
+                  <button class="btn btn--sm btn--ghost" (click)="openMessageDrawer(user)">{{ 'admin.users.message' | t | async }}</button>
                 </td>
               </tr>
             }
@@ -104,7 +104,7 @@
     </div>
 
     @if (s.filtered.length === 0 && s.status === 'ready') {
-      <div class="empty-state">No users found.</div>
+      <div class="empty-state">{{ 'admin.users.empty' | t | async }}</div>
     }
 
     <!-- Message drawer -->
@@ -112,33 +112,33 @@
       <div class="drawer-backdrop" (click)="closeMessageDrawer()">
         <div class="drawer" (click)="$event.stopPropagation()">
           <div class="drawer-header">
-            <h3 class="drawer-title">Send message to {{ s.messageTargetUser?.email }}</h3>
+            <h3 class="drawer-title">{{ 'admin.users.drawer.title' | t : { email: s.messageTargetUser?.email ?? '' } | async }}</h3>
             <button class="drawer-close" (click)="closeMessageDrawer()">✕</button>
           </div>
 
           @if (s.messageSent) {
-            <div class="success-block">Message sent!</div>
+            <div class="success-block">{{ 'admin.users.drawer.sentOk' | t | async }}</div>
           } @else {
             <form [formGroup]="messageForm" class="message-form" (ngSubmit)="sendMessage()">
               <div class="form-row">
-                <label class="field-label">Subject</label>
-                <input formControlName="subject" class="field-input" placeholder="Email subject" />
+                <label class="field-label">{{ 'admin.users.drawer.subject' | t | async }}</label>
+                <input formControlName="subject" class="field-input" [placeholder]="(('admin.users.drawer.subjectPh' | t | async) ?? '')" />
               </div>
               <div class="form-row">
-                <label class="field-label">HTML body</label>
-                <textarea formControlName="html_body" class="field-input field-textarea" rows="5" placeholder="<p>HTML body…</p>"></textarea>
+                <label class="field-label">{{ 'admin.users.drawer.htmlBody' | t | async }}</label>
+                <textarea formControlName="html_body" class="field-input field-textarea" rows="5" [placeholder]="(('admin.users.drawer.htmlPh' | t | async) ?? '')"></textarea>
               </div>
               <div class="form-row">
-                <label class="field-label">Text body</label>
-                <textarea formControlName="text_body" class="field-input field-textarea" rows="3" placeholder="Plain text fallback…"></textarea>
+                <label class="field-label">{{ 'admin.users.drawer.textBody' | t | async }}</label>
+                <textarea formControlName="text_body" class="field-input field-textarea" rows="3" [placeholder]="(('admin.users.drawer.textPh' | t | async) ?? '')"></textarea>
               </div>
               @if (s.messageError) {
                 <div class="error-block">{{ s.messageError }}</div>
               }
               <div class="form-actions">
-                <button type="button" class="btn btn--ghost" (click)="closeMessageDrawer()">Cancel</button>
+                <button type="button" class="btn btn--ghost" (click)="closeMessageDrawer()">{{ 'admin.users.drawer.cancel' | t | async }}</button>
                 <button type="submit" class="btn btn--accent" [disabled]="s.messageSending">
-                  @if (s.messageSending) { Sending… } @else { Send }
+                  @if (s.messageSending) { {{ 'admin.users.drawer.sending' | t | async }} } @else { {{ 'admin.users.drawer.send' | t | async }} }
                 </button>
               </div>
             </form>

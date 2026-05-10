@@ -3,21 +3,19 @@
     @let t = theme(s.item);
     <div class="page game-page" [class]="t.className" [style.--game-accent]="t.accent">
       <div class="page-bg" aria-hidden="true"></div>
-      <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>Back</span></a>
+      <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>{{ 'items.details.back' | t | async }}</span></a>
 
       <section class="card game-card">
         <div class="game-backdrop" aria-hidden="true"></div>
-        <button class="track-icon-btn" type="button" (click)="toggleTracked()" [class.is-tracked]="s.tracked" [title]="s.tracked ? 'Remove from watchlist' : 'Add to watchlist'">{{ s.tracked ? '★' : '☆' }}</button>
+        <button class="track-icon-btn" type="button" (click)="toggleTracked()" [class.is-tracked]="s.tracked" [title]="((s.tracked ? 'items.details.trackRemove' : 'items.details.trackAdd') | t | async)">{{ s.tracked ? '★' : '☆' }}</button>
         <div class="top">
           <div class="icon-wrap"><img class="icon" [src]="s.item.image512pxLink ?? s.item.iconLink ?? placeholder" (error)="onImageError($event)" [alt]="s.item.name" /></div>
           <div class="titles">
-            <div class="eyebrow">{{ t.label }} • {{ s.item.source }}</div>
+            <div class="eyebrow">{{ t.labelKey | t | async }} • {{ s.item.source }}</div>
             <h1 class="name">{{ s.item.name }}</h1>
-            <div class="id">Catalog ID: {{ s.item.id }}</div>
-            <div class="id">External ID: {{ s.item.externalId }}</div>
-            <div class="price" [class.is-refreshing]="s.priceLoading">Primary price: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span> {{ s.item.price?.currency }}</span></div>
+            <div class="price" [class.is-refreshing]="s.priceLoading">{{ 'items.details.primaryPrice' | t | async }}: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span> {{ s.item.price?.currency }}</span></div>
             @if (s.item.game === 'tarkov') {
-              <div class="seg" role="tablist" aria-label="Tarkov mode"><button type="button" class="seg__btn" [class.active]="s.mode === 'regular'" (click)="setMode('regular')">PvP</button><button type="button" class="seg__btn" [class.active]="s.mode === 'pve'" (click)="setMode('pve')">PvE</button></div>
+              <div class="seg" role="tablist" [attr.aria-label]="('items.details.modeAria' | t | async)"><button type="button" class="seg__btn" [class.active]="s.mode === 'regular'" (click)="setMode('regular')">{{ 'items.details.tabs.pvp' | t | async }}</button><button type="button" class="seg__btn" [class.active]="s.mode === 'pve'" (click)="setMode('pve')">{{ 'items.details.tabs.pve' | t | async }}</button></div>
             }
           </div>
         </div>
@@ -28,16 +26,17 @@
           <!-- Price trend chart -->
           <article class="chart-card chart-card--wide">
             <div class="chart-head">
-              <span>Price trend</span>
+              <span>{{ 'items.details.priceTrend' | t | async }}</span>
               <div class="chart-head-right">
                 @let change = priceChange(s.item);
                 @if (change) {
                   <span class="change-badge" [class.change-up]="change.up" [class.change-dn]="!change.up">{{ change.text }}</span>
                 }
-                <b>{{ s.item.price?.market_kind || 'market' }}</b>
+                <b>{{ s.item.price?.market_kind || (('items.details.market' | t | async) ?? '') }}</b>
               </div>
             </div>
-            <p class="chart-caption">{{ trendCaption(s.item) }}</p>
+            @let tc = trendCaption(s.item);
+            <p class="chart-caption">{{ tc.key | t : tc.params | async }}</p>
 
             @let trend = chartPoints(s.item, 'trend');
             @let yl = yLabels(s.item);
@@ -104,10 +103,14 @@
           @let bh = barsHeader(s.item);
           <article class="chart-card">
             <div class="chart-head">
-              <span>{{ bh.label }}</span>
-              <b>{{ bh.value }}</b>
+              <span>{{ bh.labelKey | t | async }}</span>
+              @if (bh.valueKey) {
+                <b>{{ bh.valueKey | t : bh.valueParams | async }}</b>
+              } @else {
+                <b>{{ bh.value }}</b>
+              }
             </div>
-            <p class="chart-caption">{{ bh.caption }}</p>
+            <p class="chart-caption">{{ bh.captionKey | t | async }}</p>
             <svg class="chart bars" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Daily price bars">
               @for (bar of bars(s.item); track bar.x) {
                 <rect class="bar" [class.bar-up]="bar.up" [class.bar-dn]="!bar.up"
@@ -119,8 +122,15 @@
         </div>
 
         <div class="stats game-stats">
-          @for (m of metrics(s.item); track m.label) {
-            <div class="stat"><span>{{ m.label }}</span><b>{{ m.value }}</b><em>{{ m.hint }}</em></div>
+          @for (m of metrics(s.item); track m.labelKey) {
+            <div class="stat">
+              <span>{{ m.labelKey | t | async }}</span>
+              <b>{{ m.value }}</b>
+              <em>
+                @if (m.hintKey) { {{ m.hintKey | t | async }} }
+                @else { {{ m.hint }} }
+              </em>
+            </div>
           }
         </div>
       </section>
@@ -128,7 +138,7 @@
   } @else {
     <div class="page game-page theme-generic">
       <div class="page-bg" aria-hidden="true"></div>
-      <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>Back</span></a>
+      <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>{{ 'items.details.back' | t | async }}</span></a>
 
       @if (s.status === 'loading' || s.status === 'idle') {
         <section class="card game-card" aria-busy="true">
@@ -138,8 +148,6 @@
             <div class="titles">
               <div class="skel sk-eyebrow"></div>
               <div class="skel sk-title"></div>
-              <div class="skel sk-id"></div>
-              <div class="skel sk-id"></div>
               <div class="skel sk-price"></div>
             </div>
           </div>
@@ -165,7 +173,7 @@
           </div>
         </section>
       } @else if (s.status === 'error') {
-        <div class="error"><h2>Item not found</h2><p class="muted">{{ s.errorMessage }}</p></div>
+        <div class="error"><h2>{{ 'items.details.notFoundTitle' | t | async }}</h2><p class="muted">{{ s.errorMessage }}</p></div>
       }
     </div>
   }

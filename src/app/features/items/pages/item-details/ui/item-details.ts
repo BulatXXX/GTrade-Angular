@@ -6,16 +6,25 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 import {ItemDetailsViewModel} from '../item-details-view-model';
 import {ItemDetails, PriceHistoryEntry, PriceSnapshot} from '../../../../../core/models/item';
+import {TPipe} from '../../../../../core/i18n/t.pipe';
 
 type ChartPoint = { x: number; y: number; value?: number; date?: string };
-type Metric = { label: string; value: string | number; hint: string };
-type GameTheme = { key: string; label: string; className: string; accent: string };
+type Metric = { labelKey: string; value: string | number; hint?: string; hintKey?: string };
+type GameTheme = { key: string; labelKey: string; className: string; accent: string };
 type AxisLabel = { text: string; pos: number };
 type PriceChange = { text: string; up: boolean };
+type BarsHeader = {
+  labelKey: string;
+  value?: string;
+  valueKey?: string;
+  valueParams?: Record<string, string | number>;
+  captionKey: string;
+};
+type TrendCaption = { key: string; params?: Record<string, string | number> };
 
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TPipe],
   templateUrl: './item-details.html',
   styleUrl: './item-details.scss',
 })
@@ -42,10 +51,10 @@ export class ItemDetailsPage {
 
   theme(item: ItemDetails): GameTheme {
     const game = String(item.game || '').toLowerCase();
-    if (game === 'warframe') return { key: 'warframe', label: 'Warframe market', className: 'theme-warframe', accent: '#7ad7ff' };
-    if (game === 'eve') return { key: 'eve', label: 'EVE regional market', className: 'theme-eve', accent: '#ffb347' };
-    if (game === 'tarkov') return { key: 'tarkov', label: 'Tarkov flea market', className: 'theme-tarkov', accent: '#b7ff7a' };
-    return { key: 'generic', label: 'Market analytics', className: 'theme-generic', accent: '#b7a7ff' };
+    if (game === 'warframe') return { key: 'warframe', labelKey: 'items.details.theme.warframe', className: 'theme-warframe', accent: '#7ad7ff' };
+    if (game === 'eve') return { key: 'eve', labelKey: 'items.details.theme.eve', className: 'theme-eve', accent: '#ffb347' };
+    if (game === 'tarkov') return { key: 'tarkov', labelKey: 'items.details.theme.tarkov', className: 'theme-tarkov', accent: '#b7ff7a' };
+    return { key: 'generic', labelKey: 'items.details.theme.generic', className: 'theme-generic', accent: '#b7a7ff' };
   }
 
   metrics(item: ItemDetails): Metric[] {
@@ -53,33 +62,33 @@ export class ItemDetailsPage {
     const game = String(item.game || '').toLowerCase();
     if (game === 'warframe') {
       return [
-        this.metric('Current', price?.pricing?.current, price?.currency),
-        this.metric('Top sell', price?.pricing?.top_sell, price?.currency),
-        this.metric('Median', price?.analytics?.median, price?.currency),
-        { label: 'Orders', value: price?.analytics?.sample_size ?? '—', hint: 'sample size' },
+        this.metric('items.details.metrics.current', price?.pricing?.current, price?.currency),
+        this.metric('items.details.metrics.topSell', price?.pricing?.top_sell, price?.currency),
+        this.metric('items.details.metrics.median', price?.analytics?.median, price?.currency),
+        { labelKey: 'items.details.metrics.orders', value: price?.analytics?.sample_size ?? '—', hintKey: 'items.details.metrics.hint.sampleSize' },
       ];
     }
     if (game === 'eve') {
       return [
-        this.metric('Adjusted', price?.pricing?.adjusted_price, price?.currency),
-        this.metric('Base', price?.pricing?.base_price, price?.currency),
-        this.metric('Spread', price?.pricing?.spread, price?.currency),
-        this.metric('High', price?.analytics?.high, price?.currency),
+        this.metric('items.details.metrics.adjusted', price?.pricing?.adjusted_price, price?.currency),
+        this.metric('items.details.metrics.base', price?.pricing?.base_price, price?.currency),
+        this.metric('items.details.metrics.spread', price?.pricing?.spread, price?.currency),
+        this.metric('items.details.metrics.high', price?.analytics?.high, price?.currency),
       ];
     }
     if (game === 'tarkov') {
       return [
-        this.metric('Top price', item.topPrice ?? price?.pricing?.current, price?.currency),
-        this.metric('Low', price?.analytics?.low, price?.currency),
-        this.metric('High', price?.analytics?.high, price?.currency),
-        { label: 'Mode', value: price?.game_mode || 'regular', hint: 'pricing mode' },
+        this.metric('items.details.metrics.topPrice', item.topPrice ?? price?.pricing?.current, price?.currency),
+        this.metric('items.details.metrics.low', price?.analytics?.low, price?.currency),
+        this.metric('items.details.metrics.high', price?.analytics?.high, price?.currency),
+        { labelKey: 'items.details.metrics.mode', value: price?.game_mode === 'pve' ? 'PvE' : 'PvP', hintKey: 'items.details.metrics.hint.pricingMode' },
       ];
     }
     return [
-      this.metric('Current', price?.pricing?.current, price?.currency),
-      this.metric('Median', price?.analytics?.median, price?.currency),
-      this.metric('Low', price?.analytics?.low, price?.currency),
-      this.metric('High', price?.analytics?.high, price?.currency),
+      this.metric('items.details.metrics.current', price?.pricing?.current, price?.currency),
+      this.metric('items.details.metrics.median', price?.analytics?.median, price?.currency),
+      this.metric('items.details.metrics.low', price?.analytics?.low, price?.currency),
+      this.metric('items.details.metrics.high', price?.analytics?.high, price?.currency),
     ];
   }
 
@@ -228,13 +237,14 @@ export class ItemDetailsPage {
     }));
   }
 
-  barsHeader(item: ItemDetails): { label: string; value: string; caption: string } {
+  barsHeader(item: ItemDetails): BarsHeader {
     if (this.hasRealHistory(item)) {
       const days = this.dailyHistoryPoints(item.priceHistory!).length;
       return {
-        label: 'Daily prices',
-        value: `${days} ${days === 1 ? 'day' : 'days'}`,
-        caption: 'Last close price per day · green = up vs prev, red = down',
+        labelKey: 'items.details.bars.dailyPrices',
+        valueKey: 'items.details.bars.daysCount',
+        valueParams: { count: days },
+        captionKey: 'items.details.bars.dailyCaption',
       };
     }
     const game = String(item.game ?? '').toLowerCase();
@@ -246,17 +256,17 @@ export class ItemDetailsPage {
     if (game === 'warframe') {
       const orders = a?.sample_size;
       return {
-        label: 'Open orders',
+        labelKey: 'items.details.bars.openOrders',
         value: orders != null ? this.formatPrice(orders) : '—',
-        caption: 'Active sell orders on the marketplace',
+        captionKey: 'items.details.bars.openOrders.caption',
       };
     }
     if (game === 'eve') {
       const spread = p?.spread;
       return {
-        label: 'Spread',
+        labelKey: 'items.details.bars.spread',
         value: spread != null ? this.formatPrice(spread, cur) : '—',
-        caption: 'Adjusted-vs-base regional price difference',
+        captionKey: 'items.details.bars.spread.caption',
       };
     }
     if (game === 'tarkov') {
@@ -264,26 +274,30 @@ export class ItemDetailsPage {
       const high = a?.high;
       const range = (low != null && high != null) ? high - low : null;
       return {
-        label: 'Price range',
+        labelKey: 'items.details.bars.priceRange',
         value: range != null ? this.formatPrice(range, cur) : '—',
-        caption: 'Difference between recent flea-market low and high',
+        captionKey: 'items.details.bars.priceRange.caption',
       };
     }
     return {
-      label: 'Liquidity',
+      labelKey: 'items.details.bars.liquidity',
       value: a?.sample_size != null ? this.formatPrice(a.sample_size) : '—',
-      caption: 'Snapshot of recent market activity',
+      captionKey: 'items.details.bars.liquidity.caption',
     };
   }
 
-  trendCaption(item: ItemDetails): string {
+  trendCaption(item: ItemDetails): TrendCaption {
     if (this.hasRealHistory(item)) {
       const h = item.priceHistory!;
       const cur = h[0]?.currency ?? '';
-      return `Price${cur ? ` in ${cur}` : ''} across ${h.length} recent observations`;
+      return cur
+        ? { key: 'items.details.trend.historyWithCurrency', params: { count: h.length, cur } }
+        : { key: 'items.details.trend.history', params: { count: h.length } };
     }
     const cur = item.price?.currency;
-    return `Recent price activity${cur ? ` · ${cur}` : ''}`;
+    return cur
+      ? { key: 'items.details.trend.activityWithCurrency', params: { cur } }
+      : { key: 'items.details.trend.activity' };
   }
 
   private dailyHistoryPoints(history: PriceHistoryEntry[]): ChartPoint[] {
@@ -341,9 +355,11 @@ export class ItemDetailsPage {
     });
   }
 
-  private metric(label: string, value?: number | string | null, currency?: string): Metric {
+  private metric(labelKey: string, value?: number | string | null, currency?: string): Metric {
     const shown = typeof value === 'number' ? Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) : (value ?? '—');
-    return { label, value: shown, hint: currency || 'market' };
+    return currency
+      ? { labelKey, value: shown, hint: currency }
+      : { labelKey, value: shown, hintKey: 'items.details.metrics.hint.market' };
   }
 
   private baseValues(price?: PriceSnapshot | null): number[] {

@@ -1,29 +1,29 @@
 <div class="auth">
   <div class="auth__card">
-    <div class="auth__badge">SECURE CONTAINER</div>
+    <div class="auth__badge">{{ 'auth.login.badge' | t | async }}</div>
 
-    <h1 class="auth__title">Sign in</h1>
-    <p class="auth__subtitle muted">Log in to sync your tracked items.</p>
+    <h1 class="auth__title">{{ 'auth.login.title' | t | async }}</h1>
+    <p class="auth__subtitle muted">{{ 'auth.login.subtitle' | t | async }}</p>
 
     <form class="auth__form" (ngSubmit)="submit()">
       <label class="field">
-        <span class="field__label">Email</span>
+        <span class="field__label">{{ 'auth.email' | t | async }}</span>
         <input class="input" type="email" autocomplete="email" [formControl]="email" placeholder="you@example.com" />
         @if (email.touched && email.invalid) {
           <div class="field__error">
-            @if (email.errors?.['required']) { Email is required }
-            @else { Invalid email }
+            @if (email.errors?.['required']) { {{ 'auth.emailRequired' | t | async }} }
+            @else { {{ 'auth.emailInvalid' | t | async }} }
           </div>
         }
       </label>
 
       <label class="field">
-        <span class="field__label">Password</span>
+        <span class="field__label">{{ 'auth.password' | t | async }}</span>
         <input class="input" type="password" autocomplete="current-password" [formControl]="password" placeholder="••••••••" />
         @if (password.touched && password.invalid) {
           <div class="field__error">
-            @if (password.errors?.['required']) { Password is required }
-            @else { Min 6 characters }
+            @if (password.errors?.['required']) { {{ 'auth.passwordRequired' | t | async }} }
+            @else { {{ 'auth.passwordMin' | t | async }} }
           </div>
         }
       </label>
@@ -33,15 +33,15 @@
       }
 
       <button class="btn btn--primary" type="submit" [disabled]="loading()">
-        @if (loading()) { Signing in… } @else { Sign in }
+        @if (loading()) { {{ 'auth.login.submitLoading' | t | async }} } @else { {{ 'auth.login.submit' | t | async }} }
       </button>
 
       <div class="auth__links muted">
-        <a routerLink="/auth/register">Create account</a>
+        <a routerLink="/auth/register">{{ 'auth.login.createAccount' | t | async }}</a>
         <span class="dot">•</span>
-        <a routerLink="/auth/password-reset">Forgot password?</a>
+        <a routerLink="/auth/password-reset">{{ 'auth.login.forgot' | t | async }}</a>
         <span class="dot">•</span>
-        <a routerLink="/items">Back to search</a>
+        <a routerLink="/items">{{ 'auth.backToSearch' | t | async }}</a>
       </div>
     </form>
   </div>

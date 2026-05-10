@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { CatalogStats, AdminJob } from '../../../../core/admin/admin.types';
 import { jobLabel } from '../../../../core/admin/admin-job-label';
+import { TPipe } from '../../../../core/i18n/t.pipe';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 type DashboardState = {
@@ -21,7 +22,7 @@ const initial: DashboardState = { status: 'idle', stats: null, jobs: [] };
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TPipe],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss',
 })

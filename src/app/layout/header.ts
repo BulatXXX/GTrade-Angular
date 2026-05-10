@@ -40,7 +40,7 @@ import {AsyncPipe} from '@angular/common';
             @if (isAuthed()) {
               {{ userName() }}
             } @else {
-              Watchlist
+              {{ 'header.watchlist' | t | async }}
             }
           </span>
         </a>
@@ -50,8 +50,8 @@ import {AsyncPipe} from '@angular/common';
         @if (!isAuthed()) {
           <a class="icon-btn"
              routerLink="/auth/login"
-             aria-label="Sign in"
-             title="Sign in">
+             [attr.aria-label]="('header.signInAria' | t | async)"
+             [title]="('header.signInAria' | t | async)">
             👤
           </a>
         }

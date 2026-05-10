@@ -5,10 +5,11 @@ import {Router, RouterModule} from '@angular/router';
 import {finalize} from 'rxjs/operators';
 
 import {AuthService} from '../../../core/auth/auth.service';
+import {TPipe} from '../../../core/i18n/t.pipe';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, TPipe],
   templateUrl: './auth-login.page.html',
   styleUrls: ['./auth-login.page.scss'],
 })

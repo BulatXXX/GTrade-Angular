@@ -7,8 +7,8 @@
   </div>
 
   <header class="header">
-    <h1 class="title">Items search</h1>
-    <p class="subtitle muted">Search the local GTrade catalog. Use game filter first for cleaner results.</p>
+    <h1 class="title">{{ 'items.search.title' | t | async }}</h1>
+    <p class="subtitle muted">{{ 'items.search.subtitle' | t | async }}</p>
   </header>
 
   <button
@@ -16,26 +16,26 @@
     class="scroll-top"
     [class.is-visible]="showScrollTop()"
     (click)="scrollToTop()"
-    aria-label="Scroll to top">
+    [attr.aria-label]="('items.search.scrollTopAria' | t | async)">
     <span class="scroll-top-arrow" aria-hidden="true">↑</span>
   </button>
 
   @if (viewModel$ | async; as vm) {
     <div class="sticky-bar" [class.is-stuck]="isHeaderStuck()">
-      <div class="filters" role="group" aria-label="Game filter">
+      <div class="filters" role="group" [attr.aria-label]="('items.search.gameFilterAria' | t | async)">
         @for (g of games; track g.code) {
-          <button type="button" class="chip" [class.active]="vm.game === g.code" (click)="setGame(g.code)">{{ g.label }}</button>
+          <button type="button" class="chip" [class.active]="vm.game === g.code" (click)="setGame(g.code)">{{ g.labelKey | t | async }}</button>
         }
       </div>
 
       <div class="search-box">
         <div class="search">
-          <input class="input" type="text" [formControl]="query" placeholder="Search: ruble, plex, prime, injector…" autocomplete="off" />
+          <input class="input" type="text" [formControl]="query" [placeholder]="(('items.search.placeholder' | t | async) ?? '')" autocomplete="off" />
 
           @if (history$ | async; as history) {
             @if (isQueryEmpty && history.length > 0) {
               <div class="history-popover"><div class="history">
-                <div class="history-head"><div class="history-title">Recently viewed</div><button class="history-clear" type="button" (click)="clearHistory()">Clear</button></div>
+                <div class="history-head"><div class="history-title">{{ 'history.title' | t | async }}</div><button class="history-clear" type="button" (click)="clearHistory()">{{ 'history.clear' | t | async }}</button></div>
                 <div class="history-list">
                   @for (h of history; track h.id) {
                     <a class="history-row" [routerLink]="['/items', h.id]"><img class="icon" [src]="h.iconLink || placeholder" (error)="onImageError($event)" width="32" height="32" alt="" /><div class="name">{{ h.name }}</div><div class="chev">›</div></a>
@@ -51,9 +51,9 @@
     @if (vm.status === 'loading') {
       <div class="list skeleton-list" aria-hidden="true">@for (_ of [1,2,3,4,5,6]; track _) { <div class="row row-skel"><div class="icon skel skel-icon"></div><div class="name skel skel-text"></div><div class="chev skel skel-chev"></div></div> }</div>
     } @else if (vm.status === 'error') {
-      <div class="error"><div class="error-title">Request failed</div><div class="error-text">{{ vm.errorMessage }}</div></div>
+      <div class="error"><div class="error-title">{{ 'items.search.errorTitle' | t | async }}</div><div class="error-text">{{ vm.errorMessage }}</div></div>
     } @else if (vm.items.length === 0) {
-      <div class="hint muted">Nothing found</div>
+      <div class="hint muted">{{ 'items.search.empty' | t | async }}</div>
     } @else {
       <div class="list">
         @for (it of vm.items; track it.id) {
@@ -77,11 +77,11 @@
         <div class="load-more">
           <div #sentinel class="load-more-sentinel" aria-hidden="true"></div>
           @if (!vm.loadingMore) {
-            <button type="button" class="load-more-btn" (click)="loadMore()">Load more</button>
+            <button type="button" class="load-more-btn" (click)="loadMore()">{{ 'items.search.loadMore' | t | async }}</button>
           }
         </div>
       } @else if (vm.items.length > 0) {
-        <div class="load-more-end muted">— end of list —</div>
+        <div class="load-more-end muted">{{ 'items.search.endOfList' | t | async }}</div>
       }
     }
   }

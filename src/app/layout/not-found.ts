@@ -1,43 +1,44 @@
 import {Component} from '@angular/core';
 import {RouterModule} from '@angular/router';
-import {Location} from '@angular/common';
+import {AsyncPipe, Location} from '@angular/common';
+import {TPipe} from '../core/i18n/t.pipe';
 
 @Component({
   standalone: true,
   selector: 'app-not-found',
-  imports: [RouterModule],
+  imports: [RouterModule, TPipe, AsyncPipe],
   template: `
     <section class="nf" aria-label="Not found">
       <div class="nf__content">
         <div class="nf__card" role="group" aria-label="404 card">
-          <div class="nf__badge">RAID ENDED</div>
+          <div class="nf__badge">{{ 'notFound.badge' | t | async }}</div>
 
-          <h1 class="nf__title">404 — Killed in Action</h1>
+          <h1 class="nf__title">{{ 'notFound.title' | t | async }}</h1>
 
           <p class="nf__subtitle">
-            You went out of bounds / Ты вышел за пределы локации.
+            {{ 'notFound.subtitle' | t | async }}
           </p>
 
           <p class="nf__meta muted">
-            Raid ended • Error code: 404 • Session lost
+            {{ 'notFound.meta' | t | async }}
           </p>
 
           <div class="nf__actions" role="navigation" aria-label="Actions">
             <button class="btn btn--primary" type="button" (click)="back()">
-              ← Back
+              {{ 'notFound.back' | t | async }}
             </button>
 
-            <a class="btn btn--ghost" routerLink="/items">Main menu</a>
-            <a class="btn btn--ghost" routerLink="/items">Open items search</a>
+            <a class="btn btn--ghost" routerLink="/items">{{ 'notFound.menu' | t | async }}</a>
+            <a class="btn btn--ghost" routerLink="/items">{{ 'notFound.openSearch' | t | async }}</a>
           </div>
 
           <div class="nf__hint">
             <div class="nf__warn">
-              Attention! You have lost all items you brought and found during the raid
-              <span class="muted">(except insured)</span>.
+              {{ 'notFound.warn' | t | async }}
+              <span class="muted">{{ 'notFound.warnExtra' | t | async }}</span>.
             </div>
             <div class="nf__easter muted">
-              СБЭУ «Комар» докладывает: цель не обнаружена. Навигация потеряна.
+              {{ 'notFound.easter' | t | async }}
             </div>
           </div>
         </div>

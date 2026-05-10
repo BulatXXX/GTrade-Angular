@@ -202,10 +202,16 @@
 }
 
 .filter-select {
-  padding: 8px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 32px 8px 14px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(18, 20, 28, 0.9);
+  background-color: rgba(18, 20, 28, 0.9);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23fff' stroke-opacity='0.55' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
   color: rgba(255, 255, 255, 0.82);
   font: inherit;
   font-size: 13px;
@@ -213,14 +219,29 @@
   cursor: pointer;
 }
 
-.filter-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  opacity: 0.75;
+.filter-chip {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 13px;
   cursor: pointer;
+  transition: 140ms ease;
   white-space: nowrap;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.filter-chip.active {
+  background: rgba(255, 122, 138, 0.15);
+  border-color: rgba(255, 122, 138, 0.40);
+  color: var(--admin-accent, #ff7a8a);
 }
 
 /* Error */

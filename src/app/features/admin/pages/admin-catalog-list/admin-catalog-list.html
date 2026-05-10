@@ -1,14 +1,14 @@
 @if (state$ | async; as s) {
   <div class="catalog-page">
     <div class="page-header">
-      <h1 class="page-title">Catalog</h1>
+      <h1 class="page-title">{{ 'admin.catalog.title' | t | async }}</h1>
 
       <div class="action-group">
         @if (s.importStatus === 'idle') {
-          <button class="btn btn--accent" (click)="showImportForm()">Import Catalog</button>
+          <button class="btn btn--accent" (click)="showImportForm()">{{ 'admin.catalog.import' | t | async }}</button>
         }
         @if (s.syncStatus === 'idle') {
-          <button class="btn btn--secondary" (click)="startSync()">Sync Price History</button>
+          <button class="btn btn--secondary" (click)="startSync()">{{ 'admin.catalog.sync' | t | async }}</button>
         }
       </div>
     </div>
@@ -16,10 +16,10 @@
     <!-- Import inline flow -->
     @if (s.importStatus === 'form') {
       <div class="inline-card">
-        <h3 class="inline-card__title">Import Catalog</h3>
+        <h3 class="inline-card__title">{{ 'admin.catalog.importTitle' | t | async }}</h3>
         <form [formGroup]="importForm" class="import-form" (ngSubmit)="submitImport()">
           <div class="form-row">
-            <label class="field-label">Game *</label>
+            <label class="field-label">{{ 'admin.catalog.field.game' | t | async }}</label>
             <select formControlName="game" class="field-input">
               <option value="warframe">Warframe</option>
               <option value="eve">EVE Online</option>
@@ -27,16 +27,16 @@
             </select>
           </div>
           <div class="form-row">
-            <label class="field-label">Source (optional)</label>
+            <label class="field-label">{{ 'admin.catalog.field.source' | t | async }}</label>
             <input formControlName="source" class="field-input" placeholder="e.g. warframe.market" />
           </div>
           <div class="form-row">
-            <label class="field-label">Language (optional)</label>
+            <label class="field-label">{{ 'admin.catalog.field.language' | t | async }}</label>
             <input formControlName="language" class="field-input" placeholder="en" />
           </div>
           <div class="form-actions">
-            <button type="button" class="btn btn--secondary" (click)="cancelImport()">Cancel</button>
-            <button type="submit" class="btn btn--accent">Start Import</button>
+            <button type="button" class="btn btn--secondary" (click)="cancelImport()">{{ 'admin.catalog.cancel' | t | async }}</button>
+            <button type="submit" class="btn btn--accent">{{ 'admin.catalog.startImport' | t | async }}</button>
           </div>
         </form>
       </div>
@@ -44,53 +44,53 @@
 
     @if (s.importStatus === 'running' && s.importJobId) {
       <div class="inline-card">
-        <h3 class="inline-card__title">Import in Progress</h3>
+        <h3 class="inline-card__title">{{ 'admin.catalog.importInProgress' | t | async }}</h3>
         <app-job-progress-card [jobId]="s.importJobId"></app-job-progress-card>
       </div>
     }
 
     @if (s.importStatus === 'done') {
       <div class="inline-card inline-card--done">
-        <span>Import job completed.</span>
-        <button class="btn btn--secondary btn--sm" (click)="resetImport()">Reset</button>
+        <span>{{ 'admin.catalog.importDone' | t | async }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetImport()">{{ 'admin.catalog.reset' | t | async }}</button>
       </div>
     }
 
     @if (s.importStatus === 'error') {
       <div class="inline-card inline-card--error">
-        <span>Import failed: {{ s.importError }}</span>
-        <button class="btn btn--secondary btn--sm" (click)="resetImport()">Reset</button>
+        <span>{{ 'admin.catalog.importFailed' | t : { error: s.importError ?? '' } | async }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetImport()">{{ 'admin.catalog.reset' | t | async }}</button>
       </div>
     }
 
     <!-- Sync inline flow -->
     @if (s.syncStatus === 'running' && s.syncJobId) {
       <div class="inline-card">
-        <h3 class="inline-card__title">Price Sync in Progress</h3>
+        <h3 class="inline-card__title">{{ 'admin.catalog.syncInProgress' | t | async }}</h3>
         <app-job-progress-card [jobId]="s.syncJobId"></app-job-progress-card>
-        <button class="btn btn--secondary btn--sm mt-8" (click)="resetSync()">Dismiss</button>
+        <button class="btn btn--secondary btn--sm mt-8" (click)="resetSync()">{{ 'admin.catalog.dismiss' | t | async }}</button>
       </div>
     }
 
     @if (s.syncStatus === 'done') {
       <div class="inline-card inline-card--done">
-        <span>Price sync job completed.</span>
-        <button class="btn btn--secondary btn--sm" (click)="resetSync()">Reset</button>
+        <span>{{ 'admin.catalog.syncDone' | t | async }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetSync()">{{ 'admin.catalog.reset' | t | async }}</button>
       </div>
     }
 
     @if (s.syncStatus === 'error') {
       <div class="inline-card inline-card--error">
-        <span>Sync failed: {{ s.syncError }}</span>
-        <button class="btn btn--secondary btn--sm" (click)="resetSync()">Reset</button>
+        <span>{{ 'admin.catalog.syncFailed' | t : { error: s.syncError ?? '' } | async }}</span>
+        <button class="btn btn--secondary btn--sm" (click)="resetSync()">{{ 'admin.catalog.reset' | t | async }}</button>
       </div>
     }
 
     <!-- Filter bar -->
     <form [formGroup]="filterForm" class="filter-bar">
-      <input formControlName="query" class="filter-input filter-input--search" placeholder="Search items…" />
+      <input formControlName="query" class="filter-input filter-input--search" [placeholder]="(('admin.catalog.searchPlaceholder' | t | async) ?? '')" />
       <select formControlName="game" class="filter-select">
-        <option value="">All games</option>
+        <option value="">{{ 'admin.catalog.allGames' | t | async }}</option>
         <option value="warframe">Warframe</option>
         <option value="eve">EVE</option>
         <option value="tarkov">Tarkov</option>
@@ -99,10 +99,9 @@
         <option value="en">EN</option>
         <option value="ru">RU</option>
       </select>
-      <label class="filter-toggle">
-        <input type="checkbox" formControlName="active_only" />
-        <span>Active only</span>
-      </label>
+      <button type="button" class="filter-chip" [class.active]="filterForm.value.active_only" (click)="toggleActiveOnly()">
+        {{ 'admin.catalog.activeOnly' | t | async }}
+      </button>
     </form>
 
     <!-- Error -->
@@ -115,13 +114,13 @@
       <table class="items-table">
         <thead>
           <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Game</th>
-            <th>Source</th>
-            <th>Slug</th>
-            <th>Updated</th>
-            <th>Actions</th>
+            <th>{{ 'admin.catalog.col.image' | t | async }}</th>
+            <th>{{ 'admin.catalog.col.name' | t | async }}</th>
+            <th>{{ 'admin.catalog.col.game' | t | async }}</th>
+            <th>{{ 'admin.catalog.col.source' | t | async }}</th>
+            <th>{{ 'admin.catalog.col.slug' | t | async }}</th>
+            <th>{{ 'admin.catalog.col.updated' | t | async }}</th>
+            <th>{{ 'admin.catalog.col.actions' | t | async }}</th>
           </tr>
         </thead>
         <tbody>
@@ -134,7 +133,7 @@
                   <div class="item-thumb-empty"></div>
                 }
               </td>
-              <td class="cell-name">{{ item.name }}</td>
+              <td class="cell-name">{{ item.localized_name || item.name }}</td>
               <td class="cell-game">
                 <span class="game-pill game-pill--{{ item.game }}">{{ item.game }}</span>
               </td>
@@ -142,8 +141,8 @@
               <td class="cell-slug" [title]="item.slug">{{ truncate(item.slug) }}</td>
               <td class="cell-date">{{ formatDate(item.updated_at) }}</td>
               <td class="cell-actions">
-                <a [routerLink]="'/admin/catalog/' + item.id" class="btn btn--sm btn--ghost">Edit</a>
-                <button class="btn btn--sm btn--danger" (click)="deleteItem(item)">Delete</button>
+                <a [routerLink]="'/admin/catalog/' + item.id" class="btn btn--sm btn--ghost">{{ 'admin.catalog.edit' | t | async }}</a>
+                <button class="btn btn--sm btn--danger" (click)="deleteItem(item)">{{ 'admin.catalog.delete' | t | async }}</button>
               </td>
             </tr>
           }
@@ -167,7 +166,7 @@
     @if (s.hasMore) {
       <div class="load-more">
         <button class="btn btn--secondary" (click)="loadMore()" [disabled]="s.status === 'loading'">
-          @if (s.status === 'loading') { Loading… } @else { Load more }
+          @if (s.status === 'loading') { {{ 'admin.catalog.loading' | t | async }} } @else { {{ 'admin.catalog.loadMore' | t | async }} }
         </button>
       </div>
     }

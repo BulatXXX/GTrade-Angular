@@ -10,6 +10,8 @@ import { CatalogItem } from '../../../../core/models/item';
 import { AdminJob, CatalogImportRequest } from '../../../../core/admin/admin.types';
 import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { JobProgressCardComponent } from '../../../../shared/ui/job-progress-card/job-progress-card';
+import { TPipe } from '../../../../core/i18n/t.pipe';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 type ImportStatus = 'idle' | 'form' | 'running' | 'done' | 'error';
@@ -38,7 +40,7 @@ const initial: CatalogListState = {
 @Component({
   selector: 'app-admin-catalog-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, JobProgressCardComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, JobProgressCardComponent, TPipe],
   templateUrl: './admin-catalog-list.html',
   styleUrl: './admin-catalog-list.scss',
 })
@@ -46,6 +48,7 @@ export class AdminCatalogListPage implements OnInit {
   private api = inject(AdminApiService);
   private confirm = inject(ConfirmDialogService);
   private destroyRef = inject(DestroyRef);
+  private i18n = inject(I18nService);
   private stateSubject = new BehaviorSubject<CatalogListState>(initial);
   state$ = this.stateSubject.asObservable();
 
@@ -103,12 +106,17 @@ export class AdminCatalogListPage implements OnInit {
     this.loadPage(this.stateSubject.value.offset);
   }
 
+  toggleActiveOnly(): void {
+    const ctrl = this.filterForm.controls.active_only;
+    ctrl.setValue(!ctrl.value);
+  }
+
   async deleteItem(item: CatalogItem): Promise<void> {
     const ok = await this.confirm.confirm({
-      title: 'Delete item',
-      message: `Delete "${item.name}"? This cannot be undone.`,
+      title: this.i18n.t('admin.catalog.deleteTitle'),
+      message: this.i18n.t('admin.catalog.deleteConfirm', { name: item.name }),
       danger: true,
-      confirmLabel: 'Delete',
+      confirmLabel: this.i18n.t('admin.catalog.delete'),
     });
     if (!ok) return;
     let errored = false;
@@ -167,9 +175,9 @@ export class AdminCatalogListPage implements OnInit {
 
   async startSync(): Promise<void> {
     const ok = await this.confirm.confirm({
-      title: 'Sync Price History',
-      message: 'Start a price history sync job? This may take several minutes.',
-      confirmLabel: 'Start Sync',
+      title: this.i18n.t('admin.catalog.syncStartTitle'),
+      message: this.i18n.t('admin.catalog.syncStartMessage'),
+      confirmLabel: this.i18n.t('admin.catalog.syncStartConfirm'),
     });
     if (!ok) return;
     this.patch({ syncStatus: 'running', syncError: undefined });

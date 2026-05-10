@@ -8,6 +8,8 @@ import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { AdminUser, AdminMessageRequest, AdminPriceAlertResult } from '../../../../core/admin/admin.types';
 import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ProgressBarComponent } from '../../../../shared/ui/progress-bar/progress-bar';
+import { TPipe } from '../../../../core/i18n/t.pipe';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 
 // TODO(backend): no block/delete endpoint — when added, expose Block button
 
@@ -35,7 +37,7 @@ const initial: UsersState = {
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ProgressBarComponent],
+  imports: [CommonModule, ReactiveFormsModule, ProgressBarComponent, TPipe],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
 })
@@ -43,6 +45,7 @@ export class AdminUsersPage implements OnInit {
   private api = inject(AdminApiService);
   private confirm = inject(ConfirmDialogService);
   private destroyRef = inject(DestroyRef);
+  private i18n = inject(I18nService);
   private stateSubject = new BehaviorSubject<UsersState>(initial);
   state$ = this.stateSubject.asObservable();
 
@@ -88,12 +91,12 @@ export class AdminUsersPage implements OnInit {
     if (newRole === user.role) return;
     const isAdminPromotion = newRole === 'admin';
     const ok = await this.confirm.confirm({
-      title: isAdminPromotion ? 'Promote to admin?' : 'Change role',
+      title: isAdminPromotion ? this.i18n.t('admin.users.confirm.promoteTitle') : this.i18n.t('admin.users.confirm.changeTitle'),
       message: isAdminPromotion
-        ? `Grant admin privileges to ${user.email}?`
-        : `Change role for ${user.email} to "${newRole}"?`,
+        ? this.i18n.t('admin.users.confirm.promoteMsg', { email: user.email })
+        : this.i18n.t('admin.users.confirm.changeMsg', { email: user.email, role: newRole }),
       danger: isAdminPromotion,
-      confirmLabel: 'Change role',
+      confirmLabel: this.i18n.t('admin.users.confirm.changeBtn'),
     });
     if (!ok) return;
 
@@ -113,15 +116,15 @@ export class AdminUsersPage implements OnInit {
 
   async sendAllAlerts(): Promise<void> {
     const ok = await this.confirm.confirm({
-      title: 'Send price alerts to ALL users',
-      message: 'This will check all users with tracked items and send email alerts. Continue?',
-      confirmLabel: 'Send alerts',
+      title: this.i18n.t('admin.users.confirm.sendTitle'),
+      message: this.i18n.t('admin.users.confirm.sendMessage'),
+      confirmLabel: this.i18n.t('admin.users.confirm.send'),
     });
     if (!ok) return;
 
     // TODO(backend): convert to job-based for real progress
     this.patch({ alertStatus: 'running', alertResult: undefined, alertError: undefined });
-    this.api.sendPriceAlerts({}).pipe(
+    this.api.sendPriceAlerts({ force_send: true }).pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(err => {
         this.patch({ alertStatus: 'error', alertError: String(err?.message ?? err) });

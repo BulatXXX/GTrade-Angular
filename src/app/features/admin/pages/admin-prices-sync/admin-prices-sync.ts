@@ -8,6 +8,8 @@ import { AdminJob } from '../../../../core/admin/admin.types';
 import { jobLabel } from '../../../../core/admin/admin-job-label';
 import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { JobProgressCardComponent } from '../../../../shared/ui/job-progress-card/job-progress-card';
+import { TPipe } from '../../../../core/i18n/t.pipe';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 
 type SyncStatus = 'idle' | 'running' | 'done' | 'error';
 type PricesState = {
@@ -23,7 +25,7 @@ const initial: PricesState = { syncStatus: 'idle', historyStatus: 'idle', histor
 @Component({
   selector: 'app-admin-prices-sync',
   standalone: true,
-  imports: [CommonModule, JobProgressCardComponent],
+  imports: [CommonModule, JobProgressCardComponent, TPipe],
   templateUrl: './admin-prices-sync.html',
   styleUrl: './admin-prices-sync.scss',
 })
@@ -31,6 +33,7 @@ export class AdminPricesSyncPage implements OnInit {
   private api = inject(AdminApiService);
   private confirm = inject(ConfirmDialogService);
   private destroyRef = inject(DestroyRef);
+  private i18n = inject(I18nService);
   private stateSubject = new BehaviorSubject<PricesState>(initial);
   state$ = this.stateSubject.asObservable();
   jobLabel = jobLabel;
@@ -52,9 +55,9 @@ export class AdminPricesSyncPage implements OnInit {
 
   async startSync(): Promise<void> {
     const ok = await this.confirm.confirm({
-      title: 'Start Price History Sync',
-      message: 'This will kick off a background job to sync price history data. It may take several minutes.',
-      confirmLabel: 'Start',
+      title: this.i18n.t('admin.catalog.syncStartTitle'),
+      message: this.i18n.t('admin.catalog.syncStartMessage'),
+      confirmLabel: this.i18n.t('admin.catalog.syncStartConfirm'),
     });
     if (!ok) return;
 

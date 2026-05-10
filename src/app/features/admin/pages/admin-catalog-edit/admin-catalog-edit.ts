@@ -9,6 +9,8 @@ import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { CatalogItem } from '../../../../core/models/item';
 import { UpdateItemRequest } from '../../../../core/admin/admin.types';
 import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
+import { TPipe } from '../../../../core/i18n/t.pipe';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 
 type Status = 'loading' | 'ready' | 'error' | 'saving';
 type EditState = { status: Status; item: CatalogItem | null; error?: string; saveError?: string; saved?: boolean };
@@ -18,7 +20,7 @@ const initial: EditState = { status: 'loading', item: null };
 @Component({
   selector: 'app-admin-catalog-edit',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, TPipe],
   templateUrl: './admin-catalog-edit.html',
   styleUrl: './admin-catalog-edit.scss',
 })
@@ -28,6 +30,7 @@ export class AdminCatalogEditPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private i18n = inject(I18nService);
   private stateSubject = new BehaviorSubject<EditState>(initial);
   state$ = this.stateSubject.asObservable();
 
@@ -124,10 +127,10 @@ export class AdminCatalogEditPage implements OnInit {
     if (!s.item) return;
 
     const ok = await this.confirm.confirm({
-      title: 'Delete item',
-      message: `Delete "${s.item.name}"? This cannot be undone.`,
+      title: this.i18n.t('admin.catalog.deleteTitle'),
+      message: this.i18n.t('admin.catalog.deleteConfirm', { name: s.item.name }),
       danger: true,
-      confirmLabel: 'Delete',
+      confirmLabel: this.i18n.t('admin.catalog.delete'),
     });
     if (!ok) return;
 

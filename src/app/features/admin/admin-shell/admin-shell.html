@@ -1,8 +1,8 @@
 <div class="admin-layout">
   <nav class="admin-sidebar">
     <div class="sidebar-brand">
-      <a routerLink="/items" class="brand-back">← GTrade</a>
-      <span class="brand-pill">Admin</span>
+      <a routerLink="/items" class="brand-back">{{ 'admin.brandBack' | t | async }}</a>
+      <span class="brand-pill">{{ 'admin.brandPill' | t | async }}</span>
     </div>
 
     <ul class="nav-list">
@@ -12,7 +12,7 @@
              [routerLink]="item.path"
              routerLinkActive="nav-link--active">
             <span class="nav-icon">{{ item.icon }}</span>
-            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-label">{{ item.labelKey | t | async }}</span>
           </a>
         </li>
       }
