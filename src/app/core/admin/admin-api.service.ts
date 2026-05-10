@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { ADMIN_API, API } from '../api/api.config';
 import {
   AdminJob,
@@ -10,6 +10,8 @@ import {
   CatalogImportRequest,
   CatalogStats,
   CreateItemRequest,
+  SchedulerStateItem,
+  SchedulerStateResponse,
   UpdateItemRequest,
 } from './admin.types';
 import { CatalogItem } from '../models/item';
@@ -45,6 +47,38 @@ export class AdminApiService {
 
   startPriceSync(): Observable<AdminJob> {
     return this.http.post<AdminJob>(`${ADMIN_API.catalog}/jobs/price-history-sync`, {});
+  }
+
+  // --- Scheduler state ---
+
+  getCatalogSchedulerState(): Observable<SchedulerStateItem[]> {
+    return this.http
+      .get<SchedulerStateResponse>(`${ADMIN_API.catalog}/scheduler-state`)
+      .pipe(map(res => (res.items ?? []).map(it => ({ ...it, service: 'catalog' as const }))));
+  }
+
+  getUserAssetsSchedulerState(): Observable<SchedulerStateItem[]> {
+    return this.http
+      .get<SchedulerStateResponse>(`${ADMIN_API.userAssets}/scheduler-state`)
+      .pipe(map(res => (res.items ?? []).map(it => ({ ...it, service: 'user-assets' as const }))));
+  }
+
+  getMergedSchedulerState(): Observable<{ items: SchedulerStateItem[]; errors: Array<{ source: 'catalog' | 'user-assets'; message: string; status?: number }> }> {
+    const wrap = (source: 'catalog' | 'user-assets', src$: Observable<SchedulerStateItem[]>) =>
+      src$.pipe(
+        map(items => ({ items, error: null as null | { source: typeof source; message: string; status?: number } })),
+        catchError((err: any) => of({
+          items: [] as SchedulerStateItem[],
+          error: { source, message: String(err?.error?.error ?? err?.message ?? err), status: err?.status as number | undefined },
+        })),
+      );
+    return forkJoin([
+      wrap('catalog', this.getCatalogSchedulerState()),
+      wrap('user-assets', this.getUserAssetsSchedulerState()),
+    ]).pipe(map(([a, b]) => ({
+      items: [...a.items, ...b.items],
+      errors: [a.error, b.error].filter((e): e is NonNullable<typeof e> => e !== null),
+    })));
   }
 
   // --- Users ---

@@ -49,7 +49,19 @@
 
   box-sizing: border-box;
   width: 100%;
-  overflow: hidden; /* чтобы ничего не вылетало */
+  /* overflow visible так, чтобы tooltips/popover могли вылезать за карточку.
+     Декоративный фон ниже клипается локальным wrapper-ом .card-bg-clip. */
+}
+
+.card-bg-clip {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  /* negative z-index ставит wrapper под контент, но всё ещё внутри
+     стэкинг-контекста .game-card (isolation: isolate). */
+  z-index: -1;
 }
 
 /* Track icon button (top-right) */
@@ -360,6 +372,7 @@
   background-size: cover;
   background-position: center;
   filter: saturate(.95) contrast(1.05);
+  border-radius: inherit;
 }
 .game-card::after {
   content: '';
@@ -367,6 +380,7 @@
   inset: 0;
   z-index: -1;
   background: linear-gradient(90deg, rgba(8,10,12,.82), rgba(8,10,12,.55)), radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--game-accent) 18%, transparent), transparent 36%);
+  border-radius: inherit;
 }
 .theme-tarkov::before {
   background-image:
@@ -610,6 +624,67 @@
 .game-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .game-stats .stat { border-color: color-mix(in srgb, var(--game-accent) 18%, rgba(255,255,255,.1)); background: rgba(0,0,0,.16); }
 .stat em { display: block; margin-top: 4px; font-size: 11px; font-style: normal; opacity: .56; text-transform: uppercase; letter-spacing: .45px; }
+.stat--synthetic b { opacity: 0.78; }
+.stat--synthetic { cursor: help; }
+.price.is-synthetic b { opacity: 0.82; }
+
+/* ===== Hover tooltip popover ===== */
+.has-tooltip {
+  position: relative;
+}
+.has-tooltip[data-tooltip]:hover::after,
+.has-tooltip[data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(14, 16, 22, 0.96);
+  border: 1px solid color-mix(in srgb, var(--game-accent, rgba(255,255,255,0.2)) 32%, rgba(255,255,255,0.12));
+  color: rgba(255, 255, 255, 0.94);
+  font-family: var(--font-body), system-ui;
+  font-size: 11px;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0.1px;
+  line-height: 1.45;
+  text-transform: none;
+
+  width: max-content;
+  max-width: 260px;
+  white-space: normal;
+  text-align: left;
+
+  z-index: 30;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+
+  animation: tooltip-in 120ms ease-out;
+}
+.has-tooltip[data-tooltip]:hover::before,
+.has-tooltip[data-tooltip]:focus-visible::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(14, 16, 22, 0.96);
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* If the metric is in the bottom row (or near viewport edge), flip below */
+.stats .has-tooltip[data-tooltip]:hover::after { bottom: auto; top: calc(100% + 10px); }
+.stats .has-tooltip[data-tooltip]:hover::before { bottom: auto; top: calc(100% + 4px); border-top-color: transparent; border-bottom-color: rgba(14, 16, 22, 0.96); }
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
 .track-icon-btn.is-tracked { color: var(--game-accent); border-color: color-mix(in srgb, var(--game-accent) 42%, rgba(255,255,255,.18)); }
 @media (max-width: 780px) {
   .analytics-grid { grid-template-columns: 1fr; }

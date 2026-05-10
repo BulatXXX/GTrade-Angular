@@ -1,0 +1,110 @@
+@if (state$ | async; as s) {
+  <div class="schedules-page">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ 'admin.schedules.title' | t | async }}</h1>
+        <p class="page-hint muted">{{ 'admin.schedules.hint' | t | async }}</p>
+      </div>
+      <button class="btn btn--secondary btn--sm" (click)="refresh()" [disabled]="s.status === 'loading'">
+        {{ 'admin.schedules.refresh' | t | async }}
+        @if (s.lastRefreshAt) { <span class="refresh-stamp">· {{ formatRelative(s.lastRefreshAt) }}</span> }
+      </button>
+    </div>
+
+    @if (s.status === 'error' && s.error) {
+      <div class="error-block">{{ s.error }}</div>
+    }
+
+    @if (s.sourceErrors.length > 0) {
+      <div class="error-block">
+        @for (e of s.sourceErrors; track e.source) {
+          <div><strong>{{ e.source }}</strong>@if (e.status) { · {{ e.status }} } · {{ e.message }}</div>
+        }
+      </div>
+    }
+
+    @if (s.status === 'loading' && s.items.length === 0) {
+      <div class="loading-grid">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="card-skel"><div class="skel skel--row"></div></div>
+        }
+      </div>
+    }
+
+    <div class="cards">
+      @for (item of s.items; track trackByJob($index, item)) {
+        <div class="job-card" [class]="'job-card--' + item.status">
+          <div class="job-card__head">
+            <div>
+              <div class="job-name">{{ jobLabel(item.job_name) }}</div>
+              <div class="job-key muted">
+                <span>{{ item.job_name }} · {{ item.service }}</span>
+                <span class="job-interval" [class.job-interval--manual]="!item.interval_seconds">
+                  · {{ formatInterval(item.interval_seconds) }}
+                </span>
+              </div>
+            </div>
+            <div class="head-right">
+              @let rf = runningFor(item);
+              @if (rf) {
+                <span class="running-tag" [class.running-tag--stuck]="rf.stuck" [title]="rf.stuck ? (('admin.schedules.stuckHint' | t | async) ?? '') : ''">
+                  ⏱ {{ 'admin.schedules.runningFor' | t : { duration: rf.label } | async }}
+                </span>
+              }
+              <span class="status-pill" [class]="statusClass(item.status)">{{ item.status }}</span>
+            </div>
+          </div>
+
+          <div class="job-card__grid">
+            <div class="cell">
+              <span class="cell-label">{{ 'admin.schedules.lastStarted' | t | async }}</span>
+              <span class="cell-value">{{ formatDate(item.last_started_at) }}</span>
+            </div>
+            <div class="cell">
+              <span class="cell-label">{{ 'admin.schedules.lastFinished' | t | async }}</span>
+              <span class="cell-value">{{ formatDate(item.last_finished_at) }}</span>
+            </div>
+            @let nr = formatNextRun(item.next_run_at);
+            <div class="cell">
+              <span class="cell-label">{{ 'admin.schedules.nextRun' | t | async }}</span>
+              <span class="cell-value next-run" [class]="'next-run--' + nr.status" [title]="formatDate(item.next_run_at)">{{ nr.label }}</span>
+            </div>
+            <div class="cell">
+              <span class="cell-label">{{ 'admin.schedules.processed' | t | async }}</span>
+              <span class="cell-value">{{ formatNum(item.last_processed) }} / {{ formatNum(item.last_total) }}</span>
+            </div>
+            <div class="cell">
+              <span class="cell-label">{{ 'admin.schedules.runsTotal' | t | async }}</span>
+              <span class="cell-value">{{ formatNum(item.runs_total) }}</span>
+            </div>
+          </div>
+
+          @if (item.last_error) {
+            <div class="job-error">{{ item.last_error }}</div>
+          }
+
+          @if (s.manualRuns[item.job_name]; as run) {
+            <div class="manual-run" [class.manual-run--err]="run.status === 'error'" [class.manual-run--skip]="run.status === 'skipped'">
+              @switch (run.status) {
+                @case ('running') { {{ 'admin.schedules.run.running' | t | async }} }
+                @case ('skipped')  { {{ 'admin.schedules.run.skipped' | t | async }}@if (run.message) { · {{ run.message }} } }
+                @case ('error')    { {{ 'admin.schedules.run.error' | t | async }}@if (run.message) { · {{ run.message }} } }
+                @case ('idle')     { {{ 'admin.schedules.run.done' | t | async }}@if (run.message) { · {{ run.message }} } }
+              }
+            </div>
+          }
+
+          <div class="job-card__actions">
+            <button class="btn btn--accent btn--sm" (click)="runNow(item)" [disabled]="item.status === 'running'">
+              {{ 'admin.schedules.runNow' | t | async }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (s.status === 'ready' && s.items.length === 0) {
+      <div class="empty">{{ 'admin.schedules.empty' | t | async }}</div>
+    }
+  </div>
+}

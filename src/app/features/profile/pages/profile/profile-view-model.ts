@@ -22,11 +22,11 @@ export class ProfileViewModel {
   readonly gameFilter$ = this.gameFilterSubject.asObservable();
   readonly query$ = this.querySubject.asObservable();
 
-  private readonly allRows$ = combineLatest([this.tracked.tracked$, this.mode$]).pipe(
-    switchMap(([tracked, mode]) => {
+  private readonly allRows$ = combineLatest([this.tracked.tracked$, this.mode$, this.settings.resolvedSearchLanguage$]).pipe(
+    switchMap(([tracked, mode, lang]) => {
       if (!tracked.length) return of([] as ProfileRowState[]);
       const loadingRows: ProfileRowState[] = tracked.map(t => ({ ...t, status: 'loading' as const })).sort((a, b) => b.updatedAt - a.updatedAt);
-      return this.api.getItemsByIdsForProfile({ ids: tracked.map(t => t.id), lang: 'en', gameMode: mode === 'pve' ? 'pve' : 'regular' }).pipe(
+      return this.api.getItemsByIdsForProfile({ ids: tracked.map(t => t.id), lang, gameMode: mode === 'pve' ? 'pve' : 'regular' }).pipe(
         map(items => {
           const byId = new Map(items.map(i => [i.id, i]));
           return tracked.map(t => {

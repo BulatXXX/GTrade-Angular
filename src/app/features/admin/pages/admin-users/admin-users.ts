@@ -22,6 +22,7 @@ type UsersState = {
   alertStatus: AlertStatus;
   alertResult?: AdminPriceAlertResult;
   alertError?: string;
+  forceSend: boolean;
   messageDrawerOpen: boolean;
   messageTargetUser?: AdminUser;
   messageSending: boolean;
@@ -31,7 +32,8 @@ type UsersState = {
 
 const initial: UsersState = {
   status: 'loading', users: [], filtered: [],
-  alertStatus: 'idle', messageDrawerOpen: false, messageSending: false, messageSent: false,
+  alertStatus: 'idle', forceSend: true,
+  messageDrawerOpen: false, messageSending: false, messageSent: false,
 };
 
 @Component({
@@ -124,7 +126,7 @@ export class AdminUsersPage implements OnInit {
 
     // TODO(backend): convert to job-based for real progress
     this.patch({ alertStatus: 'running', alertResult: undefined, alertError: undefined });
-    this.api.sendPriceAlerts({ force_send: true }).pipe(
+    this.api.sendPriceAlerts({ force_send: this.stateSubject.value.forceSend }).pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(err => {
         this.patch({ alertStatus: 'error', alertError: String(err?.message ?? err) });
@@ -138,6 +140,10 @@ export class AdminUsersPage implements OnInit {
 
   resetAlerts(): void {
     this.patch({ alertStatus: 'idle', alertResult: undefined, alertError: undefined });
+  }
+
+  toggleForceSend(): void {
+    this.patch({ forceSend: !this.stateSubject.value.forceSend });
   }
 
   openMessageDrawer(user: AdminUser): void {

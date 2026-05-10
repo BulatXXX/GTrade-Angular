@@ -309,3 +309,33 @@
   opacity: 0.4;
   white-space: nowrap;
 }
+
+.run-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.filter-chip {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 140ms ease;
+  white-space: nowrap;
+}
+
+.filter-chip:hover { background: rgba(255, 255, 255, 0.08); }
+.filter-chip.active {
+  background: rgba(255, 122, 138, 0.15);
+  border-color: rgba(255, 122, 138, 0.40);
+  color: var(--admin-accent, #ff7a8a);
+}

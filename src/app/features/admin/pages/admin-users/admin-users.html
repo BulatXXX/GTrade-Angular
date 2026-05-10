@@ -2,9 +2,14 @@
   <div class="users-page">
     <div class="page-header">
       <h1 class="page-title">{{ 'admin.users.title' | t | async }}</h1>
-      <button class="btn btn--accent" (click)="sendAllAlerts()" [disabled]="s.alertStatus === 'running'">
-        {{ 'admin.users.sendAll' | t | async }}
-      </button>
+      <div class="action-group">
+        <button type="button" class="filter-chip" [class.active]="s.forceSend" (click)="toggleForceSend()" [disabled]="s.alertStatus === 'running'">
+          {{ 'admin.users.forceSend' | t | async }}
+        </button>
+        <button class="btn btn--accent" (click)="sendAllAlerts()" [disabled]="s.alertStatus === 'running'">
+          {{ 'admin.users.sendAll' | t | async }}
+        </button>
+      </div>
     </div>
 
     <!-- Alert status -->
@@ -28,12 +33,12 @@
             <span class="result-stat__value result-stat__value--accent">{{ formatNum(s.alertResult.emails_sent) }}</span>
           </div>
           <div class="result-stat">
-            <span class="result-stat__label">{{ 'admin.users.usersWithDiffs' | t | async }}</span>
-            <span class="result-stat__value">{{ formatNum(s.alertResult.users_with_diff) }}</span>
+            <span class="result-stat__label">{{ 'admin.users.usersSkipped' | t | async }}</span>
+            <span class="result-stat__value">{{ formatNum(s.alertResult.users_skipped) }}</span>
           </div>
           <div class="result-stat">
-            <span class="result-stat__label">{{ 'admin.users.changesFound' | t | async }}</span>
-            <span class="result-stat__value">{{ formatNum(s.alertResult.changes_found) }}</span>
+            <span class="result-stat__label">{{ 'admin.users.mode' | t | async }}</span>
+            <span class="result-stat__value">{{ s.alertResult.mode }}</span>
           </div>
         </div>
         <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">{{ 'admin.users.dismiss' | t | async }}</button>

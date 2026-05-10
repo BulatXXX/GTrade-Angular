@@ -13,6 +13,11 @@ export type CatalogItem = {
   localized_description?: string | null;
   image_url?: string | null;
   is_active?: boolean;
+  translations?: Array<{
+    language_code: string;
+    name: string;
+    description?: string | null;
+  }>;
   created_at?: string;
   updated_at?: string;
 };

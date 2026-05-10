@@ -26,6 +26,7 @@ type NotifState = {
   alertStatus: AlertStatus;
   alertResult?: AdminPriceAlertResult;
   alertError?: string;
+  forceSend: boolean;
   msgStatus: MsgStatus;
   msgError?: string;
   recent: RecentEntry[];
@@ -33,7 +34,7 @@ type NotifState = {
 
 const initial: NotifState = {
   tab: 'alerts', alertTarget: 'all', alertUserId: '',
-  alertStatus: 'idle', msgStatus: 'idle', recent: [],
+  alertStatus: 'idle', forceSend: true, msgStatus: 'idle', recent: [],
 };
 
 @Component({
@@ -73,8 +74,8 @@ export class AdminNotificationsPage implements OnInit {
   runAlerts(): void {
     const s = this.stateSubject.value;
     const req: { user_id?: number; force_send: boolean } = s.alertTarget === 'user' && s.alertUserId
-      ? { user_id: parseInt(s.alertUserId, 10), force_send: true }
-      : { force_send: true };
+      ? { user_id: parseInt(s.alertUserId, 10), force_send: s.forceSend }
+      : { force_send: s.forceSend };
 
     this.patch({ alertStatus: 'running', alertResult: undefined, alertError: undefined });
     this.api.sendPriceAlerts(req).pipe(
@@ -89,13 +90,17 @@ export class AdminNotificationsPage implements OnInit {
       this.addRecent({
         type: 'alert',
         timestamp: new Date().toISOString(),
-        summary: `Sent ${result.emails_sent} alerts to ${result.users_checked} users (${result.changes_found} changes)`,
+        summary: `Sent ${result.emails_sent}/${result.users_checked} (${result.users_skipped} skipped, mode=${result.mode})`,
       });
     });
   }
 
   resetAlerts(): void {
     this.patch({ alertStatus: 'idle', alertResult: undefined, alertError: undefined });
+  }
+
+  toggleForceSend(): void {
+    this.patch({ forceSend: !this.stateSubject.value.forceSend });
   }
 
   sendMessage(): void {
