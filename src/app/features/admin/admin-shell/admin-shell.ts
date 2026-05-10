@@ -24,5 +24,6 @@ export class AdminShellComponent {
     { labelKey: 'admin.nav.prices', path: '/admin/prices', icon: '↑' },
     { labelKey: 'admin.nav.users', path: '/admin/users', icon: '◉' },
     { labelKey: 'admin.nav.notifications', path: '/admin/notifications', icon: '◎' },
+    { labelKey: 'admin.nav.schedules', path: '/admin/schedules', icon: '⏱' },
   ];
 }

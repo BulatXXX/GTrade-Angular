@@ -163,6 +163,10 @@ export class AdminCatalogListPage implements OnInit {
       }),
     ).subscribe(job => {
       if (!job) return;
+      if (job.status === 'skipped') {
+        this.patch({ importStatus: 'error', importError: this.i18n.t('admin.schedules.run.skipped') + (job.error ? ` · ${job.error}` : '') });
+        return;
+      }
       this.patch({ importJobId: job.id });
     });
   }
@@ -189,6 +193,10 @@ export class AdminCatalogListPage implements OnInit {
       }),
     ).subscribe(job => {
       if (!job) return;
+      if (job.status === 'skipped') {
+        this.patch({ syncStatus: 'error', syncError: this.i18n.t('admin.schedules.run.skipped') + (job.error ? ` · ${job.error}` : '') });
+        return;
+      }
       this.patch({ syncJobId: job.id });
     });
   }

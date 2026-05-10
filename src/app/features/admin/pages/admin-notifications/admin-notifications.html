@@ -38,9 +38,14 @@
         }
 
         @if (s.alertStatus === 'idle') {
-          <button class="btn btn--accent" (click)="runAlerts()">
-            {{ 'admin.notif.run' | t | async }}
-          </button>
+          <div class="run-row">
+            <button type="button" class="filter-chip" [class.active]="s.forceSend" (click)="toggleForceSend()">
+              {{ 'admin.notif.forceSend' | t | async }}
+            </button>
+            <button class="btn btn--accent" (click)="runAlerts()">
+              {{ 'admin.notif.run' | t | async }}
+            </button>
+          </div>
         }
 
         @if (s.alertStatus === 'running') {
@@ -63,12 +68,12 @@
                 <span class="result-value result-value--accent">{{ formatNum(s.alertResult.emails_sent) }}</span>
               </div>
               <div class="result-stat">
-                <span class="result-label">{{ 'admin.notif.usersWithDiffs' | t | async }}</span>
-                <span class="result-value">{{ formatNum(s.alertResult.users_with_diff) }}</span>
+                <span class="result-label">{{ 'admin.notif.usersSkipped' | t | async }}</span>
+                <span class="result-value">{{ formatNum(s.alertResult.users_skipped) }}</span>
               </div>
               <div class="result-stat">
-                <span class="result-label">{{ 'admin.notif.changesFound' | t | async }}</span>
-                <span class="result-value">{{ formatNum(s.alertResult.changes_found) }}</span>
+                <span class="result-label">{{ 'admin.notif.mode' | t | async }}</span>
+                <span class="result-value">{{ s.alertResult.mode }}</span>
               </div>
             </div>
             <button class="btn btn--sm btn--ghost" (click)="resetAlerts()">{{ 'admin.notif.runAgain' | t | async }}</button>

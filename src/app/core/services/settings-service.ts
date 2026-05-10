@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {Lang} from '../i18n/i18n.dict';
 
 export type AppLanguage = 'en' | 'ru';
@@ -45,10 +46,18 @@ export class SettingsService {
   private readonly _state$ = new BehaviorSubject<AppSettings>(safeLoad());
 
   readonly settings$ = this._state$.asObservable();
+  readonly resolvedSearchLanguage$ = this.settings$.pipe(
+    map(settings => settings.searchLanguage === 'auto' ? settings.appLanguage : settings.searchLanguage)
+  );
 
   get snapshot(): AppSettings {
     return this._state$.value;
   }
+
+  get resolvedSearchLanguage(): AppLanguage {
+    return this.snapshot.searchLanguage === 'auto' ? this.snapshot.appLanguage : this.snapshot.searchLanguage;
+  }
+
   toggleAppLanguage() {
     const next: Lang = this.snapshot.appLanguage === 'ru' ? 'en' : 'ru';
     this.setAppLanguage(next);

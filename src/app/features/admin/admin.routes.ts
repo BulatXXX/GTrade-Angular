@@ -39,6 +39,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/admin-notifications/admin-notifications').then(m => m.AdminNotificationsPage),
       },
+      {
+        path: 'schedules',
+        loadComponent: () =>
+          import('./pages/admin-schedules/admin-schedules').then(m => m.AdminSchedulesPage),
+      },
     ],
   },
 ];

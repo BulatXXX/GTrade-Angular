@@ -13,6 +13,36 @@
   flex-wrap: wrap;
 }
 
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 140ms ease;
+  white-space: nowrap;
+}
+
+.filter-chip:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
+.filter-chip:disabled { opacity: 0.5; cursor: default; }
+.filter-chip.active {
+  background: rgba(255, 122, 138, 0.15);
+  border-color: rgba(255, 122, 138, 0.40);
+  color: var(--admin-accent, #ff7a8a);
+}
+
 .page-title {
   margin: 0;
   font-size: 24px;

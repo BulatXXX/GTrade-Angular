@@ -74,6 +74,13 @@ export class AdminCatalogEditPage implements OnInit {
       is_active: item.is_active ?? true,
     });
     this.translations.clear();
+    for (const translation of item.translations ?? []) {
+      this.translations.push(new FormGroup({
+        language_code: new FormControl(translation.language_code ?? 'en'),
+        name: new FormControl(translation.name ?? ''),
+        description: new FormControl(translation.description ?? ''),
+      }));
+    }
   }
 
   addTranslation(): void {

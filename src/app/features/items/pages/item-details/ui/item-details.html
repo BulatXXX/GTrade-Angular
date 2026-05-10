@@ -6,14 +6,15 @@
       <a class="back-btn" routerLink="/items"><span class="back-ico">←</span><span>{{ 'items.details.back' | t | async }}</span></a>
 
       <section class="card game-card">
-        <div class="game-backdrop" aria-hidden="true"></div>
+        <div class="card-bg-clip" aria-hidden="true"><div class="game-backdrop"></div></div>
         <button class="track-icon-btn" type="button" (click)="toggleTracked()" [class.is-tracked]="s.tracked" [title]="((s.tracked ? 'items.details.trackRemove' : 'items.details.trackAdd') | t | async)">{{ s.tracked ? '★' : '☆' }}</button>
         <div class="top">
           <div class="icon-wrap"><img class="icon" [src]="s.item.image512pxLink ?? s.item.iconLink ?? placeholder" (error)="onImageError($event)" [alt]="s.item.name" /></div>
           <div class="titles">
             <div class="eyebrow">{{ t.labelKey | t | async }} • {{ s.item.source }}</div>
             <h1 class="name">{{ s.item.name }}</h1>
-            <div class="price" [class.is-refreshing]="s.priceLoading">{{ 'items.details.primaryPrice' | t | async }}: <b>{{ s.item.topPrice ?? s.item.price?.pricing?.current ?? '—' }}</b> <span> {{ s.item.price?.currency }}</span></div>
+            @let hp = headerPrice(s.item);
+            <div class="price has-tooltip" [class.is-refreshing]="s.priceLoading" [class.is-synthetic]="hp.synthetic" [attr.data-tooltip]="metricTitle({ descKey: hp.descKey, synthetic: hp.synthetic, labelKey: '', value: '' })">{{ 'items.details.primaryPrice' | t | async }}: <b>{{ hp.value }}</b> <span> {{ hp.currency }}</span></div>
             @if (s.item.game === 'tarkov') {
               <div class="seg" role="tablist" [attr.aria-label]="('items.details.modeAria' | t | async)"><button type="button" class="seg__btn" [class.active]="s.mode === 'regular'" (click)="setMode('regular')">{{ 'items.details.tabs.pvp' | t | async }}</button><button type="button" class="seg__btn" [class.active]="s.mode === 'pve'" (click)="setMode('pve')">{{ 'items.details.tabs.pve' | t | async }}</button></div>
             }
@@ -123,7 +124,7 @@
 
         <div class="stats game-stats">
           @for (m of metrics(s.item); track m.labelKey) {
-            <div class="stat">
+            <div class="stat has-tooltip" [class.stat--synthetic]="m.synthetic" [attr.data-tooltip]="metricTitle(m)">
               <span>{{ m.labelKey | t | async }}</span>
               <b>{{ m.value }}</b>
               <em>
@@ -142,7 +143,7 @@
 
       @if (s.status === 'loading' || s.status === 'idle') {
         <section class="card game-card" aria-busy="true">
-          <div class="game-backdrop" aria-hidden="true"></div>
+          <div class="card-bg-clip" aria-hidden="true"><div class="game-backdrop"></div></div>
           <div class="top">
             <div class="icon-wrap"><div class="skel sk-icon-fill"></div></div>
             <div class="titles">

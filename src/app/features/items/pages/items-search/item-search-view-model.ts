@@ -5,6 +5,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {ItemApiService} from '../../../../core/services/item-api.service';
 import {GameCode, ItemPreview} from '../../../../core/models/item';
 import {ItemsHistoryService} from '../../../../core/services/items-history';
+import {SettingsService} from '../../../../core/services/settings-service';
 
 export type GameFilter = 'all' | GameCode;
 export type SearchStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -29,6 +30,7 @@ const initialState: SearchUiState = {
 export class ItemSearchViewModel {
   private api = inject(ItemApiService);
   private history = inject(ItemsHistoryService);
+  private settings = inject(SettingsService);
   private destroyRef = inject(DestroyRef);
   private stateSubject = new BehaviorSubject<SearchUiState>(initialState);
   state$ = this.stateSubject.asObservable();
@@ -40,10 +42,12 @@ export class ItemSearchViewModel {
       map(s => ({ q: s.query.trim(), game: s.game })),
       debounceTime(300),
       distinctUntilChanged((a, b) => a.q === b.q && a.game === b.game),
-      switchMap(({ q, game }) => {
+      switchMap(({ q, game }) => this.settings.resolvedSearchLanguage$.pipe(
+        distinctUntilChanged(),
+        switchMap(lang => {
         const request$ = q.length >= 2
-          ? this.api.searchItems({ name: q, game, lang: 'en', limit: PAGE_SIZE, offset: 0 })
-          : this.api.listItems({ game, lang: 'en', limit: PAGE_SIZE, offset: 0 });
+          ? this.api.searchItems({ name: q, game, lang, limit: PAGE_SIZE, offset: 0 })
+          : this.api.listItems({ game, lang, limit: PAGE_SIZE, offset: 0 });
         return request$.pipe(
           map(items => ({
             ...this.getState,
@@ -73,7 +77,8 @@ export class ItemSearchViewModel {
             loadingMore: false,
           })),
         );
-      }),
+        }),
+      )),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(next => this.stateSubject.next(next));
   }
@@ -87,10 +92,11 @@ export class ItemSearchViewModel {
     if (s.loadingMore || !s.hasMore || s.status !== 'ready') return;
     const q = s.query.trim();
     const game = s.game;
+    const lang = this.settings.resolvedSearchLanguage;
     this.patch({ loadingMore: true });
     const request$ = q.length >= 2
-      ? this.api.searchItems({ name: q, game, lang: 'en', limit: PAGE_SIZE, offset: s.offset })
-      : this.api.listItems({ game, lang: 'en', limit: PAGE_SIZE, offset: s.offset });
+      ? this.api.searchItems({ name: q, game, lang, limit: PAGE_SIZE, offset: s.offset })
+      : this.api.listItems({ game, lang, limit: PAGE_SIZE, offset: s.offset });
     request$.pipe(
       catchError(() => of([] as ItemPreview[])),
       takeUntilDestroyed(this.destroyRef),

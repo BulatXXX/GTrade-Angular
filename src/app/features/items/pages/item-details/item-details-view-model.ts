@@ -5,6 +5,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {ItemApiService} from '../../../../core/services/item-api.service';
 import {ItemsHistoryService} from '../../../../core/services/items-history';
 import {TrackedItemsService} from '../../../../core/services/items-tracked';
+import {SettingsService} from '../../../../core/services/settings-service';
 import {GameMode, ItemDetails, ItemPreview} from '../../../../core/models/item';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
@@ -16,6 +17,7 @@ export class ItemDetailsViewModel {
   private api = inject(ItemApiService);
   private history = inject(ItemsHistoryService);
   private trackedService = inject(TrackedItemsService);
+  private settings = inject(SettingsService);
   private destroyRef = inject(DestroyRef);
   private stateSubject = new BehaviorSubject<DetailsUiState>(initialState);
   state$ = this.stateSubject.asObservable();
@@ -26,14 +28,16 @@ export class ItemDetailsViewModel {
       map(s => ({ id: s.id, mode: s.mode })),
       debounceTime(0),
       distinctUntilChanged((a, b) => a.id === b.id && a.mode === b.mode),
-      switchMap(({ id, mode }) => {
+      switchMap(({ id, mode }) => this.settings.resolvedSearchLanguage$.pipe(
+        distinctUntilChanged(),
+        switchMap(lang => {
         if (!id) return of({ ...this.snapshot, status: 'idle' as const, item: undefined, tracked: false, priceLoading: false });
         const prev = this.snapshot;
         const sameItemReload = prev.status === 'ready' && !!prev.item && prev.item.id === id;
         const startState: DetailsUiState = sameItemReload
           ? { ...prev, id, mode, priceLoading: true, errorMessage: undefined }
           : { ...prev, id, mode, status: 'loading', item: undefined, tracked: false, priceLoading: false, errorMessage: undefined };
-        return this.api.getItemById({ id, lang: 'en', gameMode: mode }).pipe(
+        return this.api.getItemById({ id, lang, gameMode: mode }).pipe(
           map(item => {
             const preview: ItemPreview = { id: item.id, game: item.game, source: item.source, externalId: item.externalId, name: item.name, iconLink: item.iconLink };
             this.history.add(preview);
@@ -44,7 +48,8 @@ export class ItemDetailsViewModel {
             ? { ...prev, id, mode, priceLoading: false, errorMessage: String(err?.error?.error ?? err?.message ?? err) }
             : { ...prev, id, mode, status: 'error' as const, item: undefined, tracked: false, priceLoading: false, errorMessage: String(err?.error?.error ?? err?.message ?? err) })),
         );
-      }),
+        }),
+      )),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(next => this.stateSubject.next(next));
   }
