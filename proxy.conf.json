@@ -5,8 +5,32 @@
     "changeOrigin": true,
     "logLevel": "info"
   },
-  "/tracked": {
-    "target": "http://localhost:8080",
+  "/watchlist": {
+    "target": "http://localhost:8082",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/users": {
+    "target": "http://localhost:8082",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/preferences": {
+    "target": "http://localhost:8082",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/recent": {
+    "target": "http://localhost:8082",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/health": {
+    "target": "http://localhost:8082",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "info"

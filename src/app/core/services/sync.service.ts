@@ -1,7 +1,7 @@
 // src/app/core/services/sync.service.ts
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, catchError, map, Observable, of, switchMap, tap, throwError} from 'rxjs';
+import {BehaviorSubject, catchError, forkJoin, map, Observable, of, switchMap, tap, throwError} from 'rxjs';
 
 import {API_BASE_URL} from '../api/api.config';
 import {AuthService} from '../auth/auth.service';
@@ -12,9 +12,22 @@ import {buildCompare, normalizeTracked, SyncCompare} from '../util/sync.diff';
 
 export type SyncStrategy = 'localToServer' | 'serverToLocal' | 'merge';
 
-type GetTrackedResp = { items: TrackedItem[] };
-type PutTrackedReq = { items: TrackedItem[] };
-type PutTrackedResp = { items: TrackedItem[] };
+type WatchlistCatalogItem = {
+  id: string;
+  image_url?: string | null;
+};
+
+type WatchlistEntry = {
+  id: number;
+  user_id: number;
+  item_id: string;
+  notify_enabled: boolean;
+  item?: WatchlistCatalogItem | null;
+  created_at: string;
+};
+
+type WatchlistResponse = { items: WatchlistEntry[] };
+type AddWatchlistRequest = { user_id: number; item_id: string };
 
 export type SyncUiState =
   | { status: 'idle' }
@@ -82,7 +95,7 @@ export class SyncService {
         }
 
         if (strategy === 'localToServer') {
-          return this.putServer(localItems).pipe(
+          return this.syncServerToMatch(localItems).pipe(
             tap(items => this.local.replaceAll(items)),
             map(() => this.local.snapshot()),
           );
@@ -92,7 +105,7 @@ export class SyncService {
         const merged = mergeByUpdatedAt(localItems, serverItems);
         this.local.replaceAll(merged);
 
-        return this.putServer(merged).pipe(
+        return this.syncServerToMatch(merged).pipe(
           tap(items => this.local.replaceAll(items)),
           map(() => this.local.snapshot()),
         );
@@ -110,17 +123,92 @@ export class SyncService {
     );
   }
 
-  private getServer(): Observable<TrackedItem[]> {
-    return this.http
-      .get<GetTrackedResp>(`${API_BASE_URL}/tracked?mode=pve`)
-      .pipe(map(res => (res.items ?? []).map(normalizeTracked)));
+  pushLocalToServer(): Observable<TrackedItem[]> {
+    if (!this.auth.isAuthed) return of(this.local.snapshot());
+
+    const localItems = this.local.snapshot().map(normalizeTracked);
+    return this.syncServerToMatch(localItems).pipe(
+      tap(items => this.local.replaceAll(items)),
+    );
   }
 
-  private putServer(items: TrackedItem[]): Observable<TrackedItem[]> {
-    const body: PutTrackedReq = { items: items.map(normalizeTracked) };
+  private getServer(): Observable<TrackedItem[]> {
+    return this.getServerEntries().pipe(
+      map(entries => entries.map(entry => this.toTrackedItem(entry))),
+    );
+  }
+
+  private syncServerToMatch(targetItems: TrackedItem[]): Observable<TrackedItem[]> {
+    const desiredItems = targetItems.map(normalizeTracked).filter(item => item.id);
+
+    return this.getServerEntries().pipe(
+      switchMap(serverEntries => {
+        const desiredIds = new Set(desiredItems.map(item => item.id));
+        const serverByItemId = new Map(serverEntries.map(entry => [entry.item_id, entry] as const));
+
+        const createOps = desiredItems
+          .filter(item => !serverByItemId.has(item.id))
+          .map(item => this.addWatchlistItem(item.id));
+
+        const deleteOps = serverEntries
+          .filter(entry => !desiredIds.has(entry.item_id))
+          .map(entry => this.deleteWatchlistItem(entry.id));
+
+        const ops = [...createOps, ...deleteOps];
+        if (!ops.length) return of(this.mergeLocalWithServer(desiredItems, serverEntries));
+
+        return forkJoin(ops).pipe(
+          map(() => desiredItems),
+        );
+      }),
+    );
+  }
+
+  private getServerEntries(): Observable<WatchlistEntry[]> {
     return this.http
-      .put<PutTrackedResp>(`${API_BASE_URL}/tracked?mode=pve`, body)
-      .pipe(map(res => (res.items ?? []).map(normalizeTracked)));
+      .get<WatchlistResponse>(`${API_BASE_URL}/watchlist`, { params: { user_id: String(this.requireUserId()) } })
+      .pipe(map(res => res.items ?? []));
+  }
+
+  private addWatchlistItem(itemId: string): Observable<WatchlistEntry> {
+    const body: AddWatchlistRequest = { user_id: this.requireUserId(), item_id: itemId };
+    return this.http.post<WatchlistEntry>(`${API_BASE_URL}/watchlist`, body);
+  }
+
+  private deleteWatchlistItem(watchlistId: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/watchlist/${watchlistId}`, {
+      params: { user_id: String(this.requireUserId()) },
+    });
+  }
+
+  private mergeLocalWithServer(localItems: TrackedItem[], serverEntries: WatchlistEntry[]): TrackedItem[] {
+    const serverByItemId = new Map(serverEntries.map(entry => [entry.item_id, entry] as const));
+    return localItems.map(item => {
+      const entry = serverByItemId.get(item.id);
+      if (!entry) return item;
+
+      return {
+        id: item.id,
+        updatedAt: item.updatedAt,
+        iconLink: item.iconLink ?? entry.item?.image_url ?? null,
+      };
+    });
+  }
+
+  private toTrackedItem(entry: WatchlistEntry): TrackedItem {
+    return normalizeTracked({
+      id: entry.item_id,
+      iconLink: entry.item?.image_url ?? null,
+      updatedAt: Date.parse(entry.created_at) || Date.now(),
+    });
+  }
+
+  private requireUserId(): number {
+    const value = Number(this.auth.userId);
+    if (!Number.isInteger(value) || value <= 0) {
+      throw new Error('Authenticated numeric user id is required for watchlist sync');
+    }
+    return value;
   }
 }
 

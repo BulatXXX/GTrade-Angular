@@ -102,6 +102,7 @@ export class TrackedItemsService {
   // ---------------- private ----------------
 
   private set(value: TrackedItem[]) {
+    if (sameTrackedItems(this.subject.value, value)) return;
     this.subject.next(value);
     this.save(value);
   }
@@ -152,4 +153,19 @@ export class TrackedItemsService {
       localStorage.setItem(this.key, JSON.stringify(value));
     } catch {}
   }
+}
+
+function sameTrackedItems(left: TrackedItem[], right: TrackedItem[]): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+
+  for (let i = 0; i < left.length; i += 1) {
+    const a = left[i];
+    const b = right[i];
+    if (a.id !== b.id || a.iconLink !== b.iconLink || a.updatedAt !== b.updatedAt) {
+      return false;
+    }
+  }
+
+  return true;
 }

@@ -10,9 +10,15 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const isApi =
       req.url.startsWith('/api') ||
-      req.url.startsWith('/tracked') ||
+      req.url.startsWith('/watchlist') ||
+      req.url.startsWith('/users') ||
+      req.url.startsWith('/preferences') ||
+      req.url.startsWith('/recent') ||
       req.url.startsWith(`${window.location.origin}/api`) ||
-      req.url.startsWith(`${window.location.origin}/tracked`);
+      req.url.startsWith(`${window.location.origin}/watchlist`) ||
+      req.url.startsWith(`${window.location.origin}/users`) ||
+      req.url.startsWith(`${window.location.origin}/preferences`) ||
+      req.url.startsWith(`${window.location.origin}/recent`);
     const token = isApi ? this.auth.accessToken : null;
     const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 

@@ -48,7 +48,7 @@ npm start
 Open <http://localhost:4200>.
 
 Use Node.js 22 LTS. Node 23 is not supported for this project and can fail during Angular build/start.
-In development, Angular proxies `/api` and `/tracked` to `http://localhost:8080`, so backend CORS is not required for local frontend runs.
+In development, Angular proxies `/api` to `http://localhost:8080` and user-asset-service routes (`/watchlist`, `/users`, `/preferences`, `/recent`, `/health`) to `http://localhost:8082`, so backend CORS is not required for local frontend runs.
 
 ## Build
 
