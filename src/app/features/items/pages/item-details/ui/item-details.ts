@@ -137,8 +137,7 @@ export class ItemDetailsPage {
 
   metricTitle(m: Metric): string {
     if (!m.descKey) return '';
-    const base = this.i18n.t(m.descKey);
-    return m.synthetic ? `${base} ${this.i18n.t('items.details.metrics.synthetic.suffix')}` : base;
+    return this.i18n.t(m.descKey);
   }
 
   /** Stable seed for hash-based synthesis. Includes game_mode so Tarkov PvP and PvE produce different but consistent values. */

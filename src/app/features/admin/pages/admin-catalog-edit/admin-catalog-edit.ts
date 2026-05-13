@@ -7,7 +7,7 @@ import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminApiService } from '../../../../core/admin/admin-api.service';
 import { CatalogItem } from '../../../../core/models/item';
-import { UpdateItemRequest } from '../../../../core/admin/admin.types';
+import { CreateItemRequest, UpdateItemRequest } from '../../../../core/admin/admin.types';
 import { ConfirmDialogService } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { TPipe } from '../../../../core/i18n/t.pipe';
 import { I18nService } from '../../../../core/i18n/i18n.service';
@@ -101,21 +101,21 @@ export class AdminCatalogEditPage implements OnInit {
     if (!s.item) return;
 
     const val = this.form.value;
+    const translations = this.normalizeTranslations();
+    const hasNewTranslation = this.hasNewTranslationLanguages(s.item, translations);
     const req: UpdateItemRequest = {};
     if (val.name !== s.item.name) req.name = val.name ?? undefined;
     if ((val.description ?? '') !== (s.item.description ?? '')) req.description = val.description ?? undefined;
     if ((val.image_url ?? '') !== (s.item.image_url ?? '')) req.image_url = val.image_url ?? undefined;
     if (val.is_active !== s.item.is_active) req.is_active = val.is_active ?? undefined;
-    if (this.translations.length > 0) {
-      req.translations = this.translations.value.map((t: any) => ({
-        language_code: t.language_code,
-        name: t.name,
-        description: t.description || undefined,
-      }));
-    }
+    if (translations.length > 0) req.translations = translations;
 
     this.patch({ status: 'saving', saveError: undefined, saved: false });
-    this.api.updateItem(this.itemId, req).pipe(
+    const save$ = hasNewTranslation
+      ? this.api.upsertItem(this.buildUpsertRequest(s.item, translations))
+      : this.api.updateItem(this.itemId, req);
+
+    save$.pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(err => {
         this.patch({ status: 'ready', saveError: String(err?.message ?? err) });
@@ -154,5 +154,47 @@ export class AdminCatalogEditPage implements OnInit {
 
   private patch(p: Partial<EditState>): void {
     this.stateSubject.next({ ...this.stateSubject.value, ...p });
+  }
+
+  private normalizeTranslations(): Array<{ language_code: string; name: string; description?: string }> {
+    return this.translations.controls
+      .map(group => {
+        const raw = group.value as { language_code?: string | null; name?: string | null; description?: string | null };
+        const language_code = String(raw.language_code ?? '').trim();
+        const name = String(raw.name ?? '').trim();
+        const description = String(raw.description ?? '').trim();
+        return {
+          language_code,
+          name,
+          description: description || undefined,
+        };
+      })
+      .filter(t => t.language_code && t.name);
+  }
+
+  private hasNewTranslationLanguages(
+    item: CatalogItem,
+    translations: Array<{ language_code: string; name: string; description?: string }>,
+  ): boolean {
+    const existing = new Set((item.translations ?? []).map(t => String(t.language_code ?? '').trim()));
+    return translations.some(t => !existing.has(t.language_code));
+  }
+
+  private buildUpsertRequest(
+    item: CatalogItem,
+    translations: Array<{ language_code: string; name: string; description?: string }>,
+  ): CreateItemRequest {
+    const val = this.form.value;
+    return {
+      game: item.game,
+      source: item.source,
+      external_id: item.external_id,
+      slug: item.slug,
+      name: val.name ?? item.name,
+      description: (val.description ?? '') || undefined,
+      image_url: (val.image_url ?? '') || undefined,
+      is_active: val.is_active ?? item.is_active ?? true,
+      translations,
+    };
   }
 }
